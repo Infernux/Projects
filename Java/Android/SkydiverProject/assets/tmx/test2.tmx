@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="boite" tilewidth="32" tileheight="32">
+  <image source="../gfx/box.png" width="32" height="32"/>
+ </tileset>
+ <tileset firstgid="2" name="boite" tilewidth="32" tileheight="32">
+  <image source="../gfx/box.png" width="32" height="32"/>
+  <tile id="0">
+   <properties>
+    <property name="Collidable" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Calque 1" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3PsQ0AIAwDQZT9h6ahchXk4IY/KW1erpVX5+jSpftXt+RSXUe362xzutO0O72r203RfRPX/ftqBwAANzaPLLn1EA4AAA==
+  </data>
+ </layer>
+</map>

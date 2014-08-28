@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="box" tilewidth="32" tileheight="32">
+  <image source="gfx/box.png" width="32" height="32"/>
+  <tile id="0">
+   <properties>
+    <property name="Collidable" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Calque 1" width="30" height="30">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NkoD9ghOJRe0k3Z6DsJcWcoe5fdPMImUmPdIXNLfSyF5dbqG0PIXOHcv5lZCA+PRFrLy55St070PYOBB4Fo2AUjIJRMApGMgAA1FERjxAOAAA=
+  </data>
+ </layer>
+</map>

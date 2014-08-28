@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+* Copyright (C) 2009 The Android Open Source Project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	<string name="minuit">minuit</string>
+	<string name="dix">DIX</string>
+    <string name="vingt">VINGT</string>
+    <string name="trente">TRENTE</string>
+    <string name="quarante">QUARANTE</string>
+    <string name="cinquante">CINQUANTE</string>
+    <string name="un">un</string>
+    <string name="deux">deux</string>
+    <string name="trois">trois</string>
+    <string name="quatre">quatre</string>
+    <string name="cinq">cinq</string>
+    <string name="six">six</string>
+    <string name="sept">sept</string>
+    <string name="huit">huit</string>
+    <string name="neuf">neuf</string>
+    <string name="onze">onze</string>
+    <string name="douze">douze</string>
+    <string name="treize">treize</string>
+    <string name="quatorze">quatorze</string>
+    <string name="quinze">quinze</string>
+    <string name="seize">seize</string>
+    <string name="dixsept">DIXsept</string>
+    <string name="dixhuit">DIXhuit</string>
+    <string name="dixneuf">DIXneuf</string>
+    
+    <string name="params">Paramètres</string>
+    <string name="colorType">Type de Couleurs</string>
+    <string name="colorTypeSum">Couleurs ou Noir/Blanc</string>
+    <string name="align">Edition Alignement</string>
+    <string name="choixFond">Choix du fond</string>
+    
+    <string name="couleur">Couleurs</string>
+    <string name="nb">NoirBlanc</string>
+    <string name="top">Haut</string>
+    <string name="center">Milieu</string>
+    <string name="bot">Bas</string>
+</resources>

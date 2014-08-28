@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string-array name="choix_couleurs">
+        <item>@string/couleur</item>
+        <item>@string/nb</item>
+    </string-array>
+
+	<string-array name="choix_couleurs_val">
+        <item>"true"</item>
+        <item>"false"</item>
+    </string-array>
+    
+    <string-array name="choix_position">
+        <item>@string/top</item>
+        <item>@string/center</item>
+        <item>@string/bot</item>
+    </string-array>
+
+    <string-array name="choix_position_val">
+        <item>"Top"</item>
+        <item>"Center"</item>
+        <item>"Bottom"</item>
+    </string-array>
+</resources>

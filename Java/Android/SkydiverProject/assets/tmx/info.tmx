@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="15" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="box" tilewidth="32" tileheight="32">
+  <image source="gfx/box.png" width="32" height="32"/>
+  <tile id="0">
+   <properties>
+    <property name="Collidable" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <tileset firstgid="2" name="Panneau" tilewidth="32" tileheight="32">
+  <image source="gfx/sign.png" width="32" height="32"/>
+  <tile id="0">
+   <properties>
+    <property name="Info" value="Vous devez tuer tout les ennemis du niveau avant de tomber dans un trou"/>
+    <property name="isInfo" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Calque 1" width="30" height="15">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC2NgGAWjYBSMglFAC8AIxchsRhxqCKkj1U5s+nHZj0sfExl2EutubPbiwrjsIRejmwUA5tGvtwgHAAA=
+  </data>
+ </layer>
+</map>

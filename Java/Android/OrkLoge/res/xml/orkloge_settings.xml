@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:title="@string/params"
+  android:key="orkloge_settings">
+    <ListPreference
+            android:key="couleur"
+            android:title="@string/colorType"
+            android:summary="@string/colorTypeSum"
+            android:entries="@array/choix_couleurs"
+            android:entryValues="@array/choix_couleurs_val"
+            android:defaultValue="true"/>
+    <CheckBoxPreference
+    	android:key="editMode"
+    	android:defaultValue="false"
+    	android:title="@string/align">
+    </CheckBoxPreference>
+    <Preference
+    	android:key="fond"
+    	android:title="@string/choixFond">
+    </Preference>
+</PreferenceScreen>
