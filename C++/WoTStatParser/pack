@@ -1,0 +1,8 @@
+#! /usr/bin/python
+
+import struct, sys
+
+arg = int(sys.argv[1])
+print arg
+res = struct.pack("B", arg);
+print res

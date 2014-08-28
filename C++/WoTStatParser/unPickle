@@ -1,0 +1,13 @@
+#!/usr/bin/python
+
+import cPickle, struct, sys
+
+f = open(sys.argv[1], 'rb')
+sortie = open("datas/cache.dat", 'wb')
+
+p = cPickle.load(f)
+
+sortie.write(str(p))
+
+f.close()
+sortie.close()
