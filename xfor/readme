@@ -1,0 +1,5 @@
+Ci-joint :
+- le rapport,
+- le code des macros (xfor.h), 
+- un fichier de test (main.c),
+- un makefile (Makefile)
