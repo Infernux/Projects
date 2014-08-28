@@ -138,7 +138,6 @@ DIST          = ../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/features/spec_pre.
 		../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/features/exceptions.prf \
 		../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/features/yacc.prf \
 		../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/features/lex.prf \
-		testC.pro \
 		testC.pro
 QMAKE_TARGET  = main
 DESTDIR       = 
@@ -167,7 +166,10 @@ first: all
 
 ####### Build rules
 
-all: Makefile $(TARGET)
+all: directories Makefile $(TARGET)
+
+directories: obj
+	mkdir -p obj
 
 $(TARGET): ui_test.h $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
@@ -243,6 +245,7 @@ Makefile: testC.pro ../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/linux-g++-64/q
 		/home/infernux/Libs/Qt5.0.0/5.0.0/gcc_64/lib/libQt5Gui.prl \
 		/home/infernux/Libs/Qt5.0.0/5.0.0/gcc_64/lib/libQt5Core.prl
 	$(QMAKE) -o Makefile testC.pro
+	mkdir obj
 ../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/features/spec_pre.prf:
 ../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/common/shell-unix.conf:
 ../../../../Libs/Qt5.0.0/5.0.0/gcc_64/mkspecs/common/unix.conf:
