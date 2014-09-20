@@ -12,15 +12,15 @@ Camera::Camera()
 }
 
 void Camera::moveBackward(float elapsed){
-    X-=direction.X*mvmtSpeed*elapsed;
-    Y-=direction.Y*mvmtSpeed*elapsed;
-    Z-=direction.Z*mvmtSpeed*elapsed;
+    X-=direction.getX()*mvmtSpeed*elapsed;
+    Y-=direction.getY()*mvmtSpeed*elapsed;
+    Z-=direction.getZ()*mvmtSpeed*elapsed;
 }
 
 void Camera::moveForward(float elapsed){
-    X+=direction.X*mvmtSpeed*elapsed;
-    Y+=direction.Y*mvmtSpeed*elapsed;
-    Z+=direction.Z*mvmtSpeed*elapsed;
+    X+=direction.getX()*mvmtSpeed*elapsed;
+    Y+=direction.getY()*mvmtSpeed*elapsed;
+    Z+=direction.getZ()*mvmtSpeed*elapsed;
 }
 
 void Camera::moveLateralLeft(float elapsed){
@@ -75,11 +75,11 @@ void Camera::rotateMouse(sf::Vector2i move){
 
 void Camera::setCamera()
 {
-    direction.X = cos(angleH*conv)*cos(angleV*conv);
-    direction.Y = sin(angleH*conv)*cos(angleV*conv);
-    direction.Z = sin(angleV*conv);
+    direction.setX(cos(angleH*conv)*cos(angleV*conv));
+    direction.setY(sin(angleH*conv)*cos(angleV*conv));
+    direction.setZ(sin(angleV*conv));
 
-    gluLookAt(X,Y,Z,X+direction.X,Y+direction.Y,Z+direction.Z,0,0,1);
+    gluLookAt(X,Y,Z,X+direction.getX(),Y+direction.getY(),Z+direction.getZ(),0,0,1);
     //gluLookAt(X,Y,Z,0,0,0,0,0,1);
     std::cout << "X :" << X << " Y :" << Y << " Z:" << Z << std::endl;
 }
