@@ -8,15 +8,16 @@
 
 #include "Camera.h"
 #include "Pad.h"
-#include "Ball.h"
+#include "Square.h"
+#include "Line.h"
 #include "KeyboardManager.h"
 
 using namespace std;
 
 float caseW, caseH;
 Camera *camera;
-Pad pad1, pad2;
-Ball ball;
+Square square;
+Line line;
 
 KeyboardManager kbmg;
 
@@ -47,22 +48,18 @@ void draw(){
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
+    /*glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
     glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);
-    glLightfv(GL_LIGHT1, GL_POSITION, lightpos);
+    glLightfv(GL_LIGHT1, GL_POSITION, lightpos);*/
 
-    glEnable(GL_LIGHT1);
-    glEnable(GL_LIGHTING);
+    /*glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHTING);*/
 
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
     glEnable(GL_TEXTURE_2D);
     glMatrixMode(GL_PROJECTION);
     glClearDepth(1.f);
-
-    pad1.setX(-10);
-    pad2.setX(10);
-    pad2.setColor(122, 122, 122);
 
     sf::Clock clock;
 
@@ -135,19 +132,6 @@ void draw(){
             camera->moveLateralRight(1.f);
         }
         //ajouter le temps =)
-        if(kbmg.pad1Up){
-            pad1.up(elapsed);
-        }
-        if(kbmg.pad1Down){
-            pad1.down(elapsed);
-        }
-        if(kbmg.pad2Up){
-            pad2.up(elapsed);
-        }
-        if(kbmg.pad2Down){
-            pad2.down(elapsed);
-        }
-
 
         // Clear depth buffer
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -157,26 +141,12 @@ void draw(){
         gluQuadricTexture(params, GL_TRUE);
 
         camera->setCamera();
-        ball.move(elapsed);
-        lightpos[0]=ball.getX();
-        lightpos[2]=ball.getZ();
-        glLightfv(GL_LIGHT1, GL_POSITION, lightpos);
+        /*lightpos[0]=ball.getX();
+        lightpos[2]=ball.getZ();*/
+        //glLightfv(GL_LIGHT1, GL_POSITION, lightpos);
 
-        ball.draw(params);
-        pad1.draw(params);
-        pad2.draw(params);
-
-        if(ball.getX()<=-8){
-            if(ball.getZ()<pad1.getZ()+5 && ball.getZ()>pad1.getZ()-5){
-                ball.invertH();
-                ball.setX(-8);
-            }
-        }else if(ball.getX()>=8){
-            if(ball.getZ()<pad2.getZ()+5 && ball.getZ()>pad2.getZ()-5){
-                ball.invertH();
-                ball.setX(8);
-            }
-        }
+//        square.draw(params);
+        line.draw(params);
 
         //terrain
         glPushMatrix();

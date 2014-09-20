@@ -32,6 +32,8 @@ class Piece {
        void setStrokeColor(Color c);
         
     protected:
+        void drawCube(int dx, int dy);
+
         Coord gridCoord; //logical coords
         Vector3D absCoord; //absolute coord to draw
         Coord *mesh; //collisions

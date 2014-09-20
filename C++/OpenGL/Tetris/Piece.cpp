@@ -45,9 +45,9 @@ void Piece::setGridCoords(Coord c){
 }
 
 void Piece::setAbsCoords(Vector3D c){
-    absCoord.x = c.x;
-    absCoord.y = c.y;
-    absCoord.z = c.z;
+    absCoord.setX(c.getX());
+    absCoord.setY(c.getY());
+    absCoord.setZ(c.getZ());
 }
 
 void Piece::setMesh(Coord mesh[], int size){
@@ -65,4 +65,53 @@ void Piece::setFillColor(Color c){
 
 void Piece::setStrokeColor(Color c){
     strokeColor.setValues(c.getRed(), c.getGreen(), c.getBlue());
+}
+
+void Piece::drawCube(int dx, int dz){
+    glPushMatrix();
+    glTranslated(dx, 0, dz);
+    glBegin(GL_QUADS);
+        //left
+        //glNormal3f(-1.f, 0.f, 0.f);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(-1, 1, 1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(-1, -1, -1);
+    
+        //back
+        //glNormal3f(0.f, -1.f, 0.f);
+        glVertex3d(-1, -1, -1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(1, -1, 1);
+        glVertex3d(1, -1, -1);
+    
+        //right
+        //glNormal3f(1.f, 0.f, 0.f);
+        glVertex3d(1, -1, -1);
+        glVertex3d(1, -1, 1);
+        glVertex3d(1, 1, 1);
+        glVertex3d(1, 1, -1);
+    
+        //front
+        //glNormal3f(0.f, 1.f, 0.f);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(-1, 1, 1);
+        glVertex3d(1, 1, 1);
+        glVertex3d(1, 1, -1);
+
+        //top
+        //glNormal3f(0.f, 0.f, 1.f);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(-1, -1, -1);
+        glVertex3d(1, -1, -1);
+        glVertex3d(1, 1, -1);
+
+        //bottom
+        //glNormal3f(0.f, 0.f, -1.f);
+        glVertex3d(-1, 1, 1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(1, -1, 1);
+        glVertex3d(1, 1, 1);
+    glEnd();
+    glPopMatrix();
 }
