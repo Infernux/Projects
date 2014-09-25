@@ -3,11 +3,13 @@
 Coord::Coord(int x, int y){
     this->x = x;
     this->y = y;
+    alive=true;
 }
 
 void Coord::setCoord(int x, int y){
     this->x = x;
     this->y = y;
+    alive=true;
 }
 
 void Coord::setX(int x){

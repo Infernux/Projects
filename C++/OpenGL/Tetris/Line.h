@@ -11,8 +11,6 @@ class Line : public Piece {
     public :
         Line();
         ~Line();
-        
-        void draw(GLUquadric*);
 };
 
 #endif

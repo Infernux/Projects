@@ -10,6 +10,8 @@ class Coord {
         void setX(int x);
         void setY(int y);
 
+        bool alive;
+
     private:
         int x, y;
 };

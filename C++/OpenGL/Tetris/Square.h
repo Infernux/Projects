@@ -11,8 +11,6 @@ class Square : public Piece {
     public :
         Square();
         ~Square();
-        
-        void draw(GLUquadric*);
 };
 
 #endif

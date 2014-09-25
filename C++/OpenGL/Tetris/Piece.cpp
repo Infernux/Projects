@@ -10,7 +10,7 @@ Piece::Piece(Coord grid, Vector3D abs, Coord mesh[], Coord center, Color fill, C
 }
 
 Piece::~Piece(){
-    delete mesh;
+    free(mesh);
 }
 
 Coord* Piece::getGridCoords(){
@@ -67,9 +67,36 @@ void Piece::setStrokeColor(Color c){
     strokeColor.setValues(c.getRed(), c.getGreen(), c.getBlue());
 }
 
+void Piece::rotate(){
+    for(int i=0; i<meshSize; ++i){
+        if(!mesh[i].alive)
+            continue;
+
+        int x = mesh[i].getX();
+        mesh[i].setX(mesh[i].getY());
+        mesh[i].setY(-x);
+    }
+}
+
+void Piece::draw(GLUquadric *params){
+    glColor3ub(fillColor.getRed(), fillColor.getGreen(), fillColor.getBlue());
+    glPushMatrix();
+    glTranslated(absCoord.getX(), absCoord.getY(), absCoord.getZ());
+    for(int i=0; i<meshSize; ++i){
+        if(mesh[i].alive)
+            drawCube(&mesh[i]);
+    }
+    glPopMatrix();
+}
+
+//protected methods
+void Piece::drawCube(Coord *coord){
+    drawCube(coord->getX(), coord->getY());
+}
+
 void Piece::drawCube(int dx, int dz){
     glPushMatrix();
-    glTranslated(dx, 0, dz);
+    glTranslated(dx*SIZE, 0*SIZE, dz*SIZE);
     glBegin(GL_QUADS);
         //left
         //glNormal3f(-1.f, 0.f, 0.f);
