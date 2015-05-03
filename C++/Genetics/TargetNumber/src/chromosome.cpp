@@ -5,6 +5,12 @@ Chromosome::Chromosome(){
     for(int i=0; i<nbGene; ++i){genes[i]=new Gene();}
 }
 
+Chromosome::Chromosome(Chromosome *c){
+    genes=new Gene*[nbGene];
+    for(int i=0; i<nbGene; ++i){genes[i]=new Gene(c->genes[i]);};
+
+}
+
 Chromosome::Chromosome(bool b){
     genes=new Gene*[nbGene];
     //*genes = (Gene*)malloc(sizeof(int)*nbGene);
@@ -19,7 +25,7 @@ void Chromosome::randomize(){
 //distance
 void Chromosome::fitting(){
 //unsigned int Chromosome::fitting(){
-    fittingValue=abs(number - getValue());
+    distanceValue=abs(number - getValue());
 }
 
 int Chromosome::getValue(){
@@ -58,8 +64,9 @@ int Chromosome::getValue(){
                     res*=val;
                     break;
                 case 3:
-                    if(val != 0)
+                    if(val == 0)
                         return -1;
+                    res/=val;
                     break;
                 case -1:
                     res=val;
@@ -70,6 +77,18 @@ int Chromosome::getValue(){
         }
     }
     return res;
+}
+
+void Chromosome::mutate(){
+    std::mt19937 eng((std::random_device())());
+    std::uniform_int_distribution<> dist(0,geneSize*nbGene-1);
+
+    //lucky winner gets changed :D
+    int winner = dist(eng);
+
+    int gene = winner/geneSize;
+    int spot = winner%geneSize;
+    genes[gene]->values[spot]=!genes[gene]->values[spot];
 }
 
 void Chromosome::crossingover(Chromosome *c2){
@@ -92,13 +111,22 @@ void Chromosome::crossingover(Chromosome *c2){
 }
 
 int Chromosome::getFittingValue(){
-    return fittingValue;
+    //return fittingValue>number?-1:number-fittingValue;
+    return distanceValue>number?-1:number-distanceValue;
 }
 
 ostream& operator<<(ostream &s,Chromosome &c){
     for(int i=0; i<nbGene; ++i){
-        s<<*c.genes[i]<<" ";
+        int val = c.genes[i]->getValue();
+        s<<*c.genes[i]<<":"<<val<<" ";
     }
-    s<<endl<<c.getValue();
+    //s<<endl<<c.getValue();
     return s;
+}
+
+bool operator==(Chromosome &l, Chromosome &r){
+    bool res = true;
+    for(int i=0; i<nbGene; ++i)
+        res = res && l.genes[i] && r.genes[i];
+    return res;
 }

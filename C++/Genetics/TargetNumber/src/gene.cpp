@@ -5,6 +5,12 @@ Gene::Gene()
     values=new bool[geneSize];
 }
 
+Gene::Gene(Gene* g){
+    values=new bool[geneSize];
+    for(int i=0; i<geneSize; ++i)
+        values[i]=g->values[i];
+}
+
 Gene::Gene(bool v)
 {
     values=new bool[geneSize];
@@ -55,4 +61,11 @@ ostream& operator<<(ostream &s, Gene &g){
         s<<g.values[i]?"1":"0";
     }
     return s;
+}
+
+bool operator==(Gene &l, Gene &r){
+    bool res=true;
+    for(int i=0; i<geneSize; ++i){
+        res=res && l.values[i] && r.values[i];
+    }
 }

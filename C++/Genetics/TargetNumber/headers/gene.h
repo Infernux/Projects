@@ -18,13 +18,16 @@ class Gene
         //int geneSize = 5;
 
         Gene();
+        Gene(Gene*);
         Gene(bool);
         ~Gene();
 
         void random();
-        friend ostream& operator<<(ostream &s, Gene &g);
         int getValue();
         bool isOperator();
+
+        friend ostream& operator<<(ostream &s, Gene &g);
+        friend bool operator==(Gene &l, Gene &r);
 
     private:
         bool isValid();

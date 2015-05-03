@@ -17,21 +17,26 @@ class Chromosome
         Gene **genes;
 
         Chromosome();
+        Chromosome(Chromosome*);
         Chromosome(bool);
         ~Chromosome();
         //unsigned int fitting();
 
+        int id;
+
         void randomize();
         int getValue();
+        void mutate();
         void crossingover(Chromosome *c2);
 
         void fitting();
         int getFittingValue();
 
         friend ostream& operator<<(ostream &s,Chromosome &c);
+        friend bool operator==(Chromosome &l, Chromosome &r);
 
     private:
-        int fittingValue;
+        int distanceValue;
 
 };
 
