@@ -1,0 +1,21 @@
+//get vehicles
+import CurrentVehicle
+-> CurrentVehicle.g_currentVehicle.item
+
+//get vehicle list
+l=gui.shared.g_itemsCache.items.getVehicles(gui.shared.REQ_CRITERIA.INVENTORY)
+l.items()[x][1] -> vehicle
+l.items()[x][1].getUnlocksDescr(y)
+
+//on a vehicle, get vehicle obj to unlock
+v.getUnlocksDescr(x)
+
+//get obj name
+Vehicle.vehicles.getDistDescr(objid)['name']
+
+//get obj name
+Vehicle.vehicles.getDictDescr(v.getUnlocksDescr(4)[1])['shortUserString']
+
+//get id
+account_helpers.getPlayerID()
+account_helpers.getPlayerDatabaseID()

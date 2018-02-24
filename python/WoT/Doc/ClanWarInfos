@@ -1,0 +1,3 @@
+g_eventDispatcher.updateUI()
+
+p._ClientChat__baseChannelChatCommand(chan.getID(),messenger.m_constants.chat_shared.CHAT_COMMANDS.broadcast,stringArg1="test")

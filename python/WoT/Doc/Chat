@@ -1,0 +1,38 @@
+//gather chat
+messenger.MessengerEntry.g_instance.storage.channels.all()[x]
+
+2: clan
+3: squad
+
+//get ALL criterias !
+messenger.proto.bw.find_criteria.
+
+//action ?
+messenger.proto.bw.find_criteria.chat_shared.buildChatActionData
+
+import messenger
+from messenger.gui.Scaleform.channels.bw_chat2 import battle_controllers
+filt=messenger.proto.bw.find_criteria.BWPrbChannelFindCriteria(1)
+chan=messenger.MessengerEntry.g_instance.storage.channels.getChannelByCriteria(filt)
+
+battle_controllers.SquadChannelController(chan.getID())._broadcast("test")
+
+//add a message to notification center
+from gui import SystemMessages
+SystemMessages.pushMessage("test")
+
+//get Vehicle from CompactDescr : A\x18,\x00"\x00\xcd\x00\x0b\x00$\x00\x16\x00\x87\x19\x00\x1f\x00\x13\x00\x07\x00\x81[\x17\x00>\x00\x81[\x17\x00\x03\x00\x81[\x17\x00
+vehicle.vehicles.getVehicleType(vehicle.vehicles.getVehicleTypeCompactDescr(tank)).shortUserString
+
+//on rosterchanged
+g_messengerEvents.users.onUserRosterChanged += self._onUserRosterChanged
+
+from chat_shared import buildChatActionData
+from chat_shared import CHAT_COMMANDS
+from chat_shared import parseCommandMessage
+
+buildChatActionData(CHAT_COMMANDS.broadcast,chan.getID(),data="pouet")
+
+com=CHAT_COMMANDS.all()[x] -> broadcast x=44 ?
+com._EnumItem__index=22
+p._ClientChat__baseChannelChatCommand(chan.getID(),com,stringArg1="",stringArg2="")

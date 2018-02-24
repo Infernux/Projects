@@ -1,0 +1,26 @@
+{1: Unit(
+_members len=1 {
+    [0] {'playerID': 503498029, 'slotIdx': 0}
+},
+state=0x02, readyMask=0x00, fullReadyMask=0x01, closedSlotMask=0x00
+state(names):INVITE_ONLY,
+modalTimestamp:0
+_vehicles len=0 {
+},
+_players len=1 {
+    [503498029] {'rating': 9446, 'timeJoin': 1420288593, 'vehDict': {55297: 192, 5377: 230, 5697: 264, 7249: 211, 8193: 198, 56577: 176, 5393: 255, 7937: 246, 9761: 265, 6209: 128, 12033: 245, 14113: 202, 5153: 254, 10513: 252, 5425: 237, 9489: 259, 14625: 172, 3889: 186, 3857: 209, 9745: 232, 14881: 223, 54865: 214, 10785: 238, 4929: 229, 2913: 219, 3137: 195, 13313: 231, 49: 75, 6225: 226, 13345: 244, 11521: 248, 14609: 222, 3425: 258, 4945: 263, 8737: 251, 54785: 163, 11809: 247, 13889: 182, 52561: 236, 11025: 242, 4145: 234, 4369: 164, 51553: 201, 55073: 199, 60433: 262, 2865: 184, 51489: 66, 12305: 257, 4385: 131, 2369: 190, 52481: 227, 545: 125, 6721: 167, 11009: 225, 11297: 250, 2817: 91}, 'igrType': 0, 'clanAbbrev': 'CPC', 'role': 6, 'peripheryID': 202, 'nickName': 'Infernux', 'accountID': 28690395} role=COMMANDER_UPDATES,ADD_REMOVE_MEMBERS,CREATOR,
+},
+_freeSlots=set([1, 2, 3, 4, 5, 6]),
+_roster=UnitRoster( slots len=8
+[0] RosterSlot( vehTypeCompDescr=0 ) -- packed:'\x00\x00\x00'
+[1] RosterSlot( vehTypeCompDescr=0 ) -- packed:'\x00\x00\x00'
+[2] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+[4] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+[6] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+[8] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+[10] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+[12] UnitRosterSlot( levels=(6, 8), nationMask=0xFF, vehClassMask=0xFF, nations=[ussr,germany,usa,china,france,uk,japan,], classes=[lightTank,mediumTank,heavyTank,SPG,AT-SPG,] )
+)
+_strComment=''
+)}
+

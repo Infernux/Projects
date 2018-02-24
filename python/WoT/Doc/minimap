@@ -1,0 +1,4 @@
+client/gui/scaleform
+minimap.py
+
+__onFarPosUpdated(self) ->

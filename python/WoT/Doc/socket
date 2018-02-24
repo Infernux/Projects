@@ -1,0 +1,11 @@
+import socket
+
+HOST='127.0.0.1'
+PORT=8666
+soc=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+soc.bind((HOST,PORT))
+soc.listen(1)
+socketClient,ipInfos=soc.accept()
+
+#client
+soc.connect((HOST,PORT))

@@ -1,0 +1,35 @@
+player=player.unitMgr
+
+//get player on slot 1
+pl=player.unitMgr.units[1]
+
+//all infos on player
+pl._players.iteritems().next()[1]
+
+//action on Team Battle
+BigWorld.player().unitMgr
+
+//pick a tank
+player.unitMgr.setVehicle(x)
+
+110 : VehCompDesc -> 2865
+
+//get vehicle name
+Vehicle.vehicles.getVehicleType(x).shortUserString
+
+pl._players.iteritems().next()[1]['vehDict'].iteritems().next()[0]
+for p in pl._players:
+    for v in p[1]['vehDict']:
+        print v[0]
+
+//get vehicles
+import gui
+from operator import attrgetter
+v=gui.shared.g_itemsCache.items.getVehicles(gui.shared.REQ_CRITERIA.INVENTORY)
+t=map(attrgetter('intCD','invID'),sorted(v.itervalues()))
+vehdict=dict(t)
+p.prebattle.test=dict()
+p.prebattle.test[0]=vehdict
+
+//
+UnitBase.UnitBase.packVehicleDict

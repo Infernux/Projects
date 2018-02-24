@@ -1,0 +1,39 @@
+#arena
+import BigWorld
+a=BigWorld.player().arena
+
+#vehicles
+a.vehicles
+
+#tankinfos
+v=a.vehicles[xxx]['vehicleType']
+
+#equipments
+v.optionalDevices
+
+#detail
+v.optionalDevices[y].userString
+
+#ground resistance + weight + stuff
+v.physics
+
+gui.WindowsManager.g_windowsManager.battleWindow.minimap
+
+#position !
+ownPos=BigWorld.camera().invViewMatrix
+guy=gui.WindowsManager.g_windowsManager.battleWindow.minimap._Minimap__entries[xxx]['matrix']
+enemyguy=gui.WindowsManager.g_windowsManager.battleWindow.minimap._Minimap__enemyentries[xxx]['matrix']
+
+import Math
+Math.Matrix(guy).translation
+
+#
+gui.battle_control.g_sessionProvider
+
+#get vehicles
+BigWorld.entities.get(x)
+#x=
+BigWorld.player().arena.vehicles
+
+#
+BigWorld.player().arena.arenaType.name
