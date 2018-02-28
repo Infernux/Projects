@@ -11,15 +11,11 @@ try:
 except:
     print "fail"
 
-for _ in range(0,1):
-    print 's'
+message_to_send = ""
 
-string = "test long"
-string2 = "test short"
+for _ in range(0,10):
+    string = "test long"
+    message_to_send += struct.pack('i', len(string))+string
 
-time.sleep(1)
-a = struct.pack('i', len(string))+string
-a += struct.pack('i', len(string2))+string2
-
-s.send(a)
+s.send(message_to_send)
 s.close()
