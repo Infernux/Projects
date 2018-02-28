@@ -4,21 +4,13 @@
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <stdint.h>
-
 #include <sys/socket.h>
 
-#define PORT 8080
-#define MAX_INCOMING_CONNECTIONS 3
+#include "constants.h"
 
 void dumpBuffer(char* buf, int len);
 void myread(int client_fd, fd_set* read_fds);
 void myread2(int client_fd, fd_set* read_fds);
-
-struct test_struct
-{
-  int32_t a;
-  char str[];
-};
 
 int setupSocketUntilConnection()
 {
@@ -99,6 +91,7 @@ int main()
 
   do
   {
+    //256 is garbage, use something else
     if(select(256, &read_fds, NULL, NULL, NULL) >= 0)
     {
       printf("Select triggered\n");
