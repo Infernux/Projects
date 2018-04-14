@@ -1,6 +1,8 @@
 import random
 
-class RandomSwap():
+from SwapPolitic import SwapPolitic
+
+class RandomSwap(SwapPolitic):
     def __init__(self,table):
         self.max_tries = 10
         self.table = table
@@ -13,10 +15,3 @@ class RandomSwap():
             self.table.swapTwoAdjacent(random.randint(0, self.table.count-2))
             self.table.printState()
             self.tries += 1
-
-    def result(self):
-        self.table.printState()
-        if self.table.isValid():
-            print("Done in "+str(self.tries))
-        else:
-            print("Failed in "+str(self.tries))

@@ -2,7 +2,9 @@
 #create lists of actions to take
 #and repeat them on a clean table everytime, without modifying it
 
-class DepthFirst():
+from SwapPolitic import SwapPolitic
+
+class DepthFirst(SwapPolitic):
     def __init__(self,table):
         self.max_depth = 4
         self.table = table
@@ -39,10 +41,3 @@ class DepthFirst():
                 return ret
 
         return None
-
-    def result(self):
-        self.table.printState()
-        if self.table.isValid():
-            print("Done in "+str(self.tries))
-        else:
-            print("Failed in "+str(self.tries))
