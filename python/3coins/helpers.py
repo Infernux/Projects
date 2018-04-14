@@ -9,6 +9,9 @@ class Coin:
     def swapState(self):
         self.state = not self.state
 
+    def setState(self, newState):
+        self.state = newState
+
 class Table:
     def __init__(self, count):
         self.count = count
@@ -40,3 +43,12 @@ class Table:
         for c in self.table:
             print(c.getState())
         print('------')
+
+    def copy(self):
+        t = Table(self.count)
+        i=0
+        for c in self.table:
+            t.table[i].setState(c.state)
+            i=i+1
+
+        return t
