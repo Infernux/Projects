@@ -16,41 +16,46 @@ class Coin:
     def swapState(self):
         self.state = not self.state
 
-def swapTwoAdjacent(table, index):
-    if index >= COINS_COUNT-1:
-        raise Exception
+class Table:
+    def __init__(self):
+        #could completely randomise
+        self.table = []
+        for i in range(0,COINS_COUNT):
+            if i % 2:
+                self.table.append(Coin(True))
+            else:
+                self.table.append(Coin(False))
 
-    table[index].swapState()
-    table[index+1].swapState()
+    def swapTwoAdjacent(self, index):
+        if index >= COINS_COUNT-1:
+            raise Exception
 
-def isValid(table):
-    prevState = table[0].getState() #fails if 0 coins
-    for c in table:
-        if c.getState() != prevState:
-            return False
+        self.table[index].swapState()
+        self.table[index+1].swapState()
 
-    return True
+    def isValid(self):
+        prevState = self.table[0].getState() #fails if 0 coins
+        for c in self.table:
+            if c.getState() != prevState:
+                return False
 
-def printState(table):
-    print('------')
-    for c in table:
-        print(c.getState())
-    print('------')
+        return True
 
-table = []
-for i in range(0,COINS_COUNT):
-    if i % 2:
-        table.append(Coin(True))
-    else:
-        table.append(Coin(False))
+    def printState(self):
+        print('------')
+        for c in self.table:
+            print(c.getState())
+        print('------')
+
+table = Table()
 
 random.seed()
 
 tries = 0
-printState(table)
-while not isValid(table) and tries < MAX_TRY:
-    swapTwoAdjacent(table, random.randint(0, COINS_COUNT-2))
-    printState(table)
+table.printState()
+while not table.isValid() and tries < MAX_TRY:
+    table.swapTwoAdjacent(random.randint(0, COINS_COUNT-2))
+    table.printState()
 
     tries+=1
 
