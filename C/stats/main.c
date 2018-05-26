@@ -2,6 +2,42 @@
 #include <stdlib.h>
 #include <math.h>
 
+double mean(int count, double* values);
+
+double ecarttype(int count, double* values)
+{
+  double stdmean = mean(count, values);
+
+  int i = 0;
+  double sum = 0;
+  for(i = 0; i < count; ++i)
+  {
+    int dist_mean = values[i] - stdmean;
+    sum += pow(dist_mean, 2);
+  }
+
+  sum /= count;
+
+  return sum;
+}
+
+double ecarttypeimpartial(int count, double* values)
+{
+  double stdmean = mean(count, values);
+
+  int i = 0;
+  double sum = 0;
+  for(i = 0; i < count; ++i)
+  {
+    int dist_mean = values[i] - stdmean;
+    sum += pow(dist_mean, 2);
+  }
+
+  sum /= count-1;
+
+  return sum;
+}
+
 double mean(int count, double* values)
 {
   int i = 0;
@@ -84,6 +120,8 @@ int main(int argc, char** argv)
   readValues(fhandle, count, values);
 
   printf("mean : %f\n", mean(count, values));
+  printf("ecart type: %f\n", ecarttype(count, values));
+  printf("ecart type impartial: %f\n", ecarttypeimpartial(count, values));
   printf("standard deviation : %f\n", standardDeviation(count, values));
   free(values);
 }
