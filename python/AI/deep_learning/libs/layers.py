@@ -3,19 +3,19 @@
 import numpy as np
 
 def softmax(x):
-    #if x.ndim == 2:
-    #    x = x.T
-    #    x = x - np.max(x, axis=0)
-    #    y = np.exp(x) / np.sum(np.exp(x), axis=0)
-    #    return y.T
+    if x.ndim == 2:
+        x = x.T
+        x = x - np.max(x, axis=0)
+        y = np.exp(x) / np.sum(np.exp(x), axis=0)
+        return y.T 
 
-    x = x - np.max(x)
+    x = x - np.max(x) # オーバーフロー対策
     return np.exp(x) / np.sum(np.exp(x))
 
 def cross_entropy_error(y, t):
     #t = t.argmax(axis=1)
 
-    batch_size = t.shape[0]
+    batch_size = y.shape[0]
     a = np.log(y[np.arange(batch_size), t] + 1e-7) #whyyy
     return -np.sum(a) / batch_size
 
