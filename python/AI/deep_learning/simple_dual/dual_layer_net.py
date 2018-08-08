@@ -1,16 +1,15 @@
 #!/usr/bin/python3
 
 import numpy as np
-import matplotlib.pylab as plt
+import argparse
 
 import sys
 sys.path.append("../libs")
 
 from dataset.mnist import load_mnist
 
-import argparse
-
 from network import dual_layer
+from mpl import *
 
 def get_minst_data():
     (x_train, t_train), (x_test, t_test) = load_mnist(normalize=True)
@@ -27,7 +26,9 @@ def training():
 #hyper_params
     learning_rate = 0.1
     batch_size = 100
-    iter_count = 100000
+    iter_count = 10000
+
+    total_acc = []
 
     for i in range(iter_count):
         #create_batch
@@ -42,15 +43,16 @@ def training():
             dl.net[key] -= grads[key] * learning_rate
 
         #accuracy
-        if i % 1000 == 0:
-            print(dl.accuracy(x_test, t_test))
+        if i % 100 == 0:
+            acc = dl.accuracy(x_test, t_test)
+            print(acc)
+            total_acc.append(acc)
 
     dl.save_net()
-    #graph stuff
+    graphme(np.arange(len(total_acc)), total_acc)
 
 def guess(img):
 #convert image
-    print(img)
     dl = dual_layer(784, 30, 10)
     dl.predict(img)
 
