@@ -23,19 +23,20 @@ def RGB_to_YCbCr(img):
 
     return img2
 
+def YCbCr_to_RGB(rgb, img, w, h):
+    for y in range(h):
+        for x in range(w):
+            gray = img[x + y*w]
+            rgb[x,y,0] = gray
+            rgb[x,y,1] = gray
+            rgb[x,y,2] = gray
+
 def grayme(img):
     r = float(img[0,0,0])
     g = float(img[0,0,1])
     b = float(img[0,0,2])
     img2 = RGB_to_YCbCr(img)
-
-    for y in range(img.shape[1]):
-        for x in range(img.shape[0]):
-            y2 = img2[x + y*img.shape[0]]
-            img[x,y,0] = y2
-            img[x,y,1] = y2
-            img[x,y,2] = y2
-
+    YCbCr_to_RGB(img, img2, img.shape[0], img.shape[1])
 
 def img():
     img = io.imread(sys.argv[1])  # load the image as grayscale
