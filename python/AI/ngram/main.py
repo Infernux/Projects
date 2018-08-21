@@ -30,11 +30,11 @@ class Ngram():
         self.table.sort(key=lambda el:el.count, reverse=True)
 
     def dump(self):
-        for t in self.table:
+        for t in self.table[:10]:
             print("token : %s (%d)" % (t.moji, t.count))
 
-with open(sys.argv[1]) as f:
-    ngram = Ngram(5)
+with open(sys.argv[2]) as f:
+    ngram = Ngram(int(sys.argv[1]))
     for line in f:
         #print(line)
         ngram.readSentence(line)

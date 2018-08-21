@@ -10,7 +10,7 @@ from dataset.mnist import load_mnist
 
 from network import dual_layer
 from mpl import *
-from learners import base_learner
+from learners import *
 
 def get_minst_data():
     (x_train, t_train), (x_test, t_test) = load_mnist(normalize=True)
@@ -26,10 +26,11 @@ def training():
 
 #hyper_params
     learning_rate = 0.1
-    batch_size = 100
-    iter_count = 100000
+    batch_size = 1000
+    iter_count = 10000
 
     learner = base_learner(learning_rate)
+    #learner = Momentum(learning_rate)
 
     total_acc = []
 
@@ -40,6 +41,9 @@ def training():
         t_batch = t_train[batch_mask]
         #gradient
         grads = dl.gradient(x_batch, t_batch)
+
+        #for key in dl.net.keys():
+            #dl.net[key] -= grads[key] * learning_rate
 
         #learn
         learner.learn(dl.net, grads)

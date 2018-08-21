@@ -18,9 +18,12 @@ typedef struct s_Filter
   unsigned int height;
 } *Filter;
 
+double naive_convol(double* img, Filter filter, int x, int y, int stride);
+double* zero_pad(double* mat, int width, int height, int padding);
+
 double* RGBSpaceToYCrCm(CImg<double> img)
 {
-  double* out = new double[sizeof(double) * img.width() * img.height()];
+  double* out = new double[img.width() * img.height()];
 
   for(int j=0; j<img.height(); ++j)
   {
@@ -35,9 +38,6 @@ double* RGBSpaceToYCrCm(CImg<double> img)
       //double Pr = 0.5f * (red - Y)/(1-Kr);
     }
   }
-
-  for(int i=0; i<10; ++i)
-    cout << out[i] << endl;
 
   return out;
 }
@@ -85,30 +85,55 @@ Filter createSharpeningFilter()
   f->height = 3;
   f->matrix = new double[9];
 
-  f->matrix[0] = 0;
-  f->matrix[1] = -1;
-  f->matrix[2] = 0;
+  f->matrix[0] = 0.;
+  f->matrix[1] = -1.;
+  f->matrix[2] = 0.;
 
-  f->matrix[3] = -1;
-  f->matrix[4] = 5;
-  f->matrix[5] = -1;
+  f->matrix[3] = -1.;
+  f->matrix[4] = 5.;
+  f->matrix[5] = -1.;
 
-  f->matrix[6] = 0;
-  f->matrix[7] = -1;
-  f->matrix[8] = 0;
+  f->matrix[6] = 0.;
+  f->matrix[7] = -1.;
+  f->matrix[8] = 0.;
 
   return f;
 }
 
+void apply_filter(double* out, Filter filter, int width, int height)
+{
+  int padding = 1;
+  double* padded_img = zero_pad(out,width,height,padding);
+
+  for(int y=0 + padding; y<height + padding; ++y)
+  {
+    for(int x=0 + padding; x<width + padding; ++x)
+    {
+      out[(x-padding) + (y-padding) * width] = naive_convol(padded_img, filter, x, y, (width+padding*2));
+    }
+  }
+
+  delete[] padded_img;
+}
+
 double naive_convol(double* img, Filter filter, int x, int y, int stride)
 {
-  double n = 0.f;
+  //flip kernel
+  int n = 0.f;
   for(int j=-1; j<2; ++j)
   {
     for(int i=-1; i<2; ++i)
     {
       n += img[x+i + (y+j)*stride] * filter->matrix[i+1 + (j+1)*filter->width];
     }
+  }
+  if(n < 0.)
+  {
+    return 0.;
+  }
+  else if(n > 255.)
+  {
+    return 255.;
   }
   return n;
 }
@@ -174,23 +199,14 @@ int main(int argc, char** argv)
 
   double* img2 = RGBSpaceToYCrCm(img);
 
-  int padding = 1, width = img.width(), height = img.height();
-  double* padded_img = zero_pad(img2,width,height,padding);
-
-  /*for(int y=0 + padding; y<height + padding; ++y)
-  {
-    for(int x=0 + padding; x<width + padding; ++x)
-    {
-      img2[(x-padding) + (y-padding) * width] = naive_convol(padded_img, filter, x, y, (width+padding*2));
-    }
-  }*/
+  int width = img.width(), height = img.height();
+  apply_filter(img2, filter, width, height);
 
   YCrCmSpaceToRGB(&img, img2, 0, width, height);
 
   img.save("output.bmp");
 
   delete[] filter->matrix;
-  delete[] padded_img;
   //delete[] img;
   delete filter;
   delete img2;

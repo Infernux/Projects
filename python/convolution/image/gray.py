@@ -19,6 +19,10 @@ def RGB_to_YCbCr(img):
             g = float(img[x,y,1])
             b = float(img[x,y,2])
 
+            if y == 0 and x < 10:
+                print(r,g,b)
+                print(Kr*r + Kg*g + Kb*b)
+
             img2.append(float(Kr*r + Kg*g + Kb*b))
 
     return img2
@@ -32,9 +36,6 @@ def YCbCr_to_RGB(rgb, img, w, h):
             rgb[x,y,2] = gray
 
 def grayme(img):
-    r = float(img[0,0,0])
-    g = float(img[0,0,1])
-    b = float(img[0,0,2])
     img2 = RGB_to_YCbCr(img)
     YCbCr_to_RGB(img, img2, img.shape[0], img.shape[1])
 
