@@ -18,6 +18,14 @@ typedef struct s_Filter
   unsigned int height;
 } *Filter;
 
+void print_timediff(struct timespec *start, struct timespec *end)
+{
+  int s = end->tv_sec - start->tv_sec;
+  int ns = end->tv_nsec - start->tv_nsec;
+  cout << s * 1000 + ns / 1000000 << "ms" << endl;
+}
+
+void apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding);
 double naive_convol(double* img, Filter filter, int x, int y, int stride);
 double* zero_pad(double* mat, int width, int height, int padding);
 
@@ -75,7 +83,6 @@ Filter createEdgeDetectionFilter()
   f->matrix[8] = -1;
 
   return f;
-
 }
 
 Filter createSharpeningFilter()
@@ -100,11 +107,24 @@ Filter createSharpeningFilter()
   return f;
 }
 
-void apply_filter(double* out, Filter filter, int width, int height)
+void measure_convol(double *out, Filter filter, int width, int height)
 {
   int padding = 1;
   double* padded_img = zero_pad(out,width,height,padding);
 
+  struct timespec start, end;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+
+  apply_filter(out, padded_img, filter, width, height, padding);
+
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  print_timediff(&start, &end);
+
+  delete[] padded_img;
+}
+
+void apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
+{
   for(int y=0 + padding; y<height + padding; ++y)
   {
     for(int x=0 + padding; x<width + padding; ++x)
@@ -112,8 +132,6 @@ void apply_filter(double* out, Filter filter, int width, int height)
       out[(x-padding) + (y-padding) * width] = naive_convol(padded_img, filter, x, y, (width+padding*2));
     }
   }
-
-  delete[] padded_img;
 }
 
 double naive_convol(double* img, Filter filter, int x, int y, int stride)
@@ -191,16 +209,16 @@ double* load_img(const char* path)
 
 int main(int argc, char** argv)
 {
-  Filter filter = createSharpeningFilter();
-  //double* img = create_example();
-  //double* img = load_img(argv[1]);
+  //Filter filter = createSharpeningFilter();
+  Filter filter = createEdgeDetectionFilter();
   CImg<double> img(argv[1]);
   printf("w: %d, h: %d\n", img.width(), img.height());
 
   double* img2 = RGBSpaceToYCrCm(img);
 
   int width = img.width(), height = img.height();
-  apply_filter(img2, filter, width, height);
+
+  measure_convol(img2, filter, width, height);
 
   YCrCmSpaceToRGB(&img, img2, 0, width, height);
 
