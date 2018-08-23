@@ -2,6 +2,10 @@
 #include <iostream>
 #include <string.h>
 
+#include "unravel_convol.h"
+#include "dual_convol.h"
+#include "common.h"
+
 #include "CImg.h"
 
 #define Kr 0.299
@@ -10,13 +14,6 @@
 
 using namespace cimg_library;
 using namespace std;
-
-typedef struct s_Filter
-{
-  double* matrix;
-  unsigned int width;
-  unsigned int height;
-} *Filter;
 
 void print_timediff(struct timespec *start, struct timespec *end)
 {
@@ -107,20 +104,32 @@ Filter createSharpeningFilter()
   return f;
 }
 
-void measure_convol(double *out, Filter filter, int width, int height)
+typedef void (*filter_applier)(double* out, double* padded_img, Filter filter, int width, int height, int padding);
+
+void measure_convol(filter_applier fa, char* img_path, string output, Filter filter)
 {
+  CImg<double> img(img_path);
+  printf("w: %d, h: %d\n", img.width(), img.height());
+
+  double* img2 = RGBSpaceToYCrCm(img);
+
+  int width = img.width(), height = img.height();
   int padding = 1;
-  double* padded_img = zero_pad(out,width,height,padding);
+  double* padded_img = zero_pad(img2,width,height,padding);
 
   struct timespec start, end;
   clock_gettime(CLOCK_MONOTONIC, &start);
 
-  apply_filter(out, padded_img, filter, width, height, padding);
+  fa(img2, padded_img, filter, width, height, padding);
 
   clock_gettime(CLOCK_MONOTONIC, &end);
   print_timediff(&start, &end);
 
+  YCrCmSpaceToRGB(&img, img2, 0, width, height);
+
   delete[] padded_img;
+  delete img2;
+  img.save(output.c_str());
 }
 
 void apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
@@ -211,21 +220,12 @@ int main(int argc, char** argv)
 {
   //Filter filter = createSharpeningFilter();
   Filter filter = createEdgeDetectionFilter();
-  CImg<double> img(argv[1]);
-  printf("w: %d, h: %d\n", img.width(), img.height());
 
-  double* img2 = RGBSpaceToYCrCm(img);
-
-  int width = img.width(), height = img.height();
-
-  measure_convol(img2, filter, width, height);
-
-  YCrCmSpaceToRGB(&img, img2, 0, width, height);
-
-  img.save("output.bmp");
+  measure_convol(apply_filter, argv[1], "output_naive.bmp", filter);
+  measure_convol(apply_filter_unravel, argv[1], "output_unravel.bmp", filter);
+  measure_convol(apply_filter_dual, argv[1], "output_dual.bmp", filter);
 
   delete[] filter->matrix;
   //delete[] img;
   delete filter;
-  delete img2;
 }
