@@ -1,6 +1,6 @@
 #include "unravel_convol.h"
 
-double unravel_convol(double* img, Filter filter, int x, int y, int stride)
+double UnravelConvol::convol(double* img, Filter filter, int x, int y, int stride)
 {
   int n = 0.f;
   n += img[x-1 + (y-1)*stride] * filter->matrix[0];
@@ -24,13 +24,18 @@ double unravel_convol(double* img, Filter filter, int x, int y, int stride)
 
 }
 
-void apply_filter_unravel(double* out, double* padded_img, Filter filter, int width, int height, int padding)
+void UnravelConvol::apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
 {
   for(int y=0 + padding; y<height + padding; ++y)
   {
     for(int x=0 + padding; x<width + padding; ++x)
     {
-      out[(x-padding) + (y-padding) * width] = unravel_convol(padded_img, filter, x, y, (width+padding*2));
+      out[(x-padding) + (y-padding) * width] = convol(padded_img, filter, x, y, (width+padding*2));
     }
   }
+}
+
+void UnravelConvol::whatIsMyName()
+{
+  std::cout << "UnravelConvol !" << std::endl;
 }
