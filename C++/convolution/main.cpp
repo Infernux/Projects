@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string.h>
 
+#include "filters.h"
 #include "unravel_convol.h"
 #include "naive_convol.h"
 #include "dual_convol.h"
@@ -59,49 +60,6 @@ void YCrCmSpaceToRGB(CImg<double>* d, double* img, int padding, int width, int h
       (*d)(x-padding, y-padding,2) = Y;
     }
   }
-}
-
-Filter createEdgeDetectionFilter()
-{
-  Filter f = new s_Filter;
-  f->width = 3;
-  f->height = 3;
-  f->matrix = new double[9];
-  f->matrix[0] = -1;
-  f->matrix[1] = -1;
-  f->matrix[2] = -1;
-
-  f->matrix[3] = -1;
-  f->matrix[4] = 8;
-  f->matrix[5] = -1;
-
-  f->matrix[6] = -1;
-  f->matrix[7] = -1;
-  f->matrix[8] = -1;
-
-  return f;
-}
-
-Filter createSharpeningFilter()
-{
-  Filter f = new s_Filter;
-  f->width = 3;
-  f->height = 3;
-  f->matrix = new double[9];
-
-  f->matrix[0] = 0.;
-  f->matrix[1] = -1.;
-  f->matrix[2] = 0.;
-
-  f->matrix[3] = -1.;
-  f->matrix[4] = 5.;
-  f->matrix[5] = -1.;
-
-  f->matrix[6] = 0.;
-  f->matrix[7] = -1.;
-  f->matrix[8] = 0.;
-
-  return f;
 }
 
 void measure_convol(Convol *fa, char* img_path, string output, Filter filter)
@@ -188,6 +146,7 @@ int main(int argc, char** argv)
 {
   //Filter filter = createSharpeningFilter();
   Filter filter = createEdgeDetectionFilter();
+  Filter blur = createBlurFilter;
 
   DualConvol dual;
   NaiveConvol naive;
