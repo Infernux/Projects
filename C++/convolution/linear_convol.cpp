@@ -1,38 +1,36 @@
 #include "linear_convol.h"
 
+#include <string.h>
+
 void LinearConvol::convol(double* out, double* img, Filter filter, int x, int y, int stride)
 {
   double n[stride-2]; //2 == padding*2
+  int padding = 1;
+  int width = stride - 2*padding;
 
-  for(int j=y-1; j<y+1; ++j)
+  memset(n, 0, (stride-2)*sizeof(double));
+
+  for(int j=y-1; j<y+2; ++j)
   {
     double f0 = filter->matrix[(j-y+1)*filter->width];
     double f1 = filter->matrix[(j-y+1)*filter->width + 1];
     double f2 = filter->matrix[(j-y+1)*filter->width + 2];
 
-    n[0] = f0 * img[j*stride];
-    n[0] = f1 * img[j*stride+1];
-    n[1] = f0 * img[j*stride+1];
+    n[0] += f0 * img[j*stride];
+    n[0] += f1 * img[j*stride+1];
+    n[1] += f0 * img[j*stride+1];
 
     for(int i=2; i<stride-2; ++i)
     {
-      n[i]   = f0 * img[(j*stride)+i];
-      n[i-1] = f1 * img[(j*stride)+i];
-      n[i-2] = f2 * img[(j*stride)+i];
+      n[i]   += f0 * img[(j*stride)+i];
+      n[i-1] += f1 * img[(j*stride)+i];
+      n[i-2] += f2 * img[(j*stride)+i];
     }
   }
 
-  for(int i=0; i<stride-2; ++i)
+  for(int i=0; i<width; ++i)
   {
-    n[i] = CLIP(n[i]);
-  }
-
-  int padding = 1;
-  int width = stride - 2*padding;
-
-  for(int i=0; i<stride-2; ++i)
-  {
-    out[y*(stride-2)+i] = CLIP(n[i]);
+    out[(y-padding)*width+i] = CLIP(n[i]);
   }
 }
 
