@@ -21,10 +21,9 @@ void DualConvol::convol(double* out, double* img, Filter filter, int x, int y, i
   n2+= img[x+1 + (y+1)*stride] * filter->matrix[7];
   n += img[x+1 + (y+1)*stride] * filter->matrix[8];
   n2+= img[x+2 + (y+1)*stride] * filter->matrix[8];
-  n = n < 0. ? 0 : n;
-  n = n > 255. ? 255. : n;
-  n2 = n2 < 0. ? 0 : n2;
-  n2 = n2 > 255. ? 255. : n2;
+
+  n   = CLIP(n);
+  n2  = CLIP(n2);
 
   int padding = 1;
   int width = stride - 2*padding;

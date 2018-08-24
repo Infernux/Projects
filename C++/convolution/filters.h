@@ -5,5 +5,6 @@
 
 Filter createEdgeDetectionFilter();
 Filter createSharpeningFilter();
+Filter createBlurFilter();
 
 #endif //__FILTERS_H__

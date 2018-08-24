@@ -6,6 +6,8 @@
 #include "unravel_convol.h"
 #include "naive_convol.h"
 #include "dual_convol.h"
+#include "triple_convol.h"
+#include "linear_convol.h"
 #include "convol.h"
 #include "common.h"
 
@@ -146,15 +148,19 @@ int main(int argc, char** argv)
 {
   //Filter filter = createSharpeningFilter();
   Filter filter = createEdgeDetectionFilter();
-  Filter blur = createBlurFilter;
+  //Filter blur = createBlurFilter();
 
   DualConvol dual;
   NaiveConvol naive;
   UnravelConvol unravel;
+  TripleConvol triple;
+  LinearConvol linear;
 
-  measure_convol(&naive, argv[1], "output_naive.bmp", filter);
+  //measure_convol(&naive, argv[1], "output_naive.bmp", filter);
   measure_convol(&unravel, argv[1], "output_unravel.bmp", filter);
   measure_convol(&dual, argv[1], "output_dual.bmp", filter);
+  measure_convol(&triple, argv[1], "output_triple.bmp", filter);
+  measure_convol(&linear, argv[1], "output_linear.bmp", filter);
 
   delete[] filter->matrix;
   //delete[] img;

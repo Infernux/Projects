@@ -12,16 +12,8 @@ double UnravelConvol::convol(double* img, Filter filter, int x, int y, int strid
   n += img[x-1 + (y+1)*stride] * filter->matrix[6];
   n += img[x   + (y+1)*stride] * filter->matrix[7];
   n += img[x+1 + (y+1)*stride] * filter->matrix[8];
-  if(n < 0.)
-  {
-    return 0.;
-  }
-  else if(n > 255.)
-  {
-    return 255.;
-  }
-  return n;
 
+  return CLIP(n);
 }
 
 void UnravelConvol::apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)

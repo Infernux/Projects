@@ -11,15 +11,7 @@ double NaiveConvol::convol(double* img, Filter filter, int x, int y, int stride)
       n += img[x+i + (y+j)*stride] * filter->matrix[i+1 + (j+1)*filter->width];
     }
   }
-  if(n < 0.)
-  {
-    return 0.;
-  }
-  else if(n > 255.)
-  {
-    return 255.;
-  }
-  return n;
+  return CLIP(n);
 }
 
 void NaiveConvol::apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
