@@ -64,7 +64,17 @@ void YCrCmSpaceToRGB(CImg<double>* d, double* img, int padding, int width, int h
   }
 }
 
-void measure_convol(Convol *fa, char* img_path, string output, Filter filter)
+void write_down_img(double* buffer, char* img_path, string output)
+{
+  CImg<double> img(img_path);
+
+  int width = img.width(), height = img.height();
+  YCrCmSpaceToRGB(&img, buffer, 0, width, height);
+
+  img.save(output.c_str());
+}
+
+double* measure_convol(Convol *fa, char* img_path, Filter filter)
 {
   CImg<double> img(img_path);
   printf("w: %d, h: %d\n", img.width(), img.height());
@@ -84,11 +94,11 @@ void measure_convol(Convol *fa, char* img_path, string output, Filter filter)
   clock_gettime(CLOCK_MONOTONIC, &end);
   print_timediff(&start, &end);
 
-  YCrCmSpaceToRGB(&img, img2, 0, width, height);
+
 
   delete[] padded_img;
-  delete img2;
-  img.save(output.c_str());
+
+  return img2;
 }
 
 
@@ -157,13 +167,19 @@ int main(int argc, char** argv)
   LinearConvol linear;
 
   //measure_convol(&naive, argv[1], "output_naive.bmp", filter);
-  measure_convol(&unravel, argv[1], "output_unravel.bmp", filter);
-  measure_convol(&dual, argv[1], "output_dual.bmp", filter);
-  measure_convol(&triple, argv[1], "output_triple.bmp", filter);
-  measure_convol(&linear, argv[1], "output_linear.bmp", filter);
+  double* unravel_out = measure_convol(&unravel, argv[1], filter);
+  double* dual_out = measure_convol(&dual, argv[1], filter);
+  double* triple_out = measure_convol(&triple, argv[1], filter);
+  double* linear_out = measure_convol(&linear, argv[1], filter);
+
+  //write_down_img(unravel_out, argv[1], "output_unravel.bmp");
 
   delete[] filter->matrix;
   //delete[] img;
   delete filter;
+  delete unravel_out;
+  delete dual_out;
+  delete triple_out;
+  delete linear_out;
 }
 
