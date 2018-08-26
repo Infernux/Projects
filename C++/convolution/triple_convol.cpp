@@ -32,8 +32,7 @@ void TripleConvol::convol(double* out, double* img, Filter filter, int x, int y,
   n3+= img[x+1  + (y+1)*stride] * filter->matrix[7];
   n += img[x    + (y+1)*stride] * filter->matrix[8];
   n2+= img[x+1  + (y+1)*stride] * filter->matrix[8];
-  if ( x+2 + (y+1)*stride < (stride-2))
-    n3+= img[x+2  + (y+1)*stride] * filter->matrix[8];
+  n3+= img[x+2  + (y+1)*stride] * filter->matrix[8];
 
   n = CLIP(n);
   n2 = CLIP(n2);
@@ -44,8 +43,7 @@ void TripleConvol::convol(double* out, double* img, Filter filter, int x, int y,
 
   out[(x-1-padding) + (y-padding) * width] = n;
   out[(x-padding) + (y-padding) * width] = n2;
-  if ((x+1-padding) + (y-padding) * width < (stride-2))
-    out[(x+1-padding) + (y-padding) * width] = n3;
+  out[(x+1-padding) + (y-padding) * width] = n3;
 }
 
 void TripleConvol::apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
