@@ -2,7 +2,7 @@
 
 double UnravelConvol::convol(double* img, Filter filter, int x, int y, int stride)
 {
-  int n = 0.f;
+  double n = 0.f;
   n += img[x-1 + (y-1)*stride] * filter->matrix[0];
   n += img[x   + (y-1)*stride] * filter->matrix[1];
   n += img[x+1 + (y-1)*stride] * filter->matrix[2];

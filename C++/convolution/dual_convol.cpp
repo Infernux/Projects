@@ -2,7 +2,7 @@
 
 void DualConvol::convol(double* out, double* img, Filter filter, int x, int y, int stride)
 {
-  int n = 0.f, n2 = 0.f;
+  double n = 0.f, n2 = 0.f;
   n += img[x-1 + (y-1)*stride] * filter->matrix[0];
   n2+= img[x   + (y-1)*stride] * filter->matrix[0];
   n += img[x   + (y-1)*stride] * filter->matrix[1];

@@ -2,7 +2,7 @@
 
 void TripleConvol::convol(double* out, double* img, Filter filter, int x, int y, int stride)
 {
-  int n = 0.f, n2 = 0.f, n3 = 0.f;
+  double n = 0.f, n2 = 0.f, n3 = 0.f;
 
   n += img[x-2  + (y-1)*stride] * filter->matrix[0];
   n2+= img[x-1  + (y-1)*stride] * filter->matrix[0];

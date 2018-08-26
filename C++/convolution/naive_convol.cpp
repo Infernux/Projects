@@ -3,7 +3,7 @@
 double NaiveConvol::convol(double* img, Filter filter, int x, int y, int stride)
 {
   //flip kernel
-  int n = 0.f;
+  double n = 0.f;
   for(int j=-1; j<2; ++j)
   {
     for(int i=-1; i<2; ++i)
