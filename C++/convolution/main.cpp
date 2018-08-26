@@ -101,6 +101,22 @@ double* measure_convol(Convol *fa, char* img_path, Filter filter)
   return img2;
 }
 
+bool compareImgs(double* a, double* b, int width, int height)
+{
+  for(int y=0; y<height; ++y)
+  {
+    for(int x=0; x<width; ++x)
+    {
+      if(a[x + y*width] != b[x + y*width])
+      {
+        printf("pixel x:%d, y:%d (%f, %f)\n", x, y, a[x + y*width], b[x + y*width]);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 
 
 double* create_example()
@@ -166,17 +182,24 @@ int main(int argc, char** argv)
   TripleConvol triple;
   LinearConvol linear;
 
-  //measure_convol(&naive, argv[1], "output_naive.bmp", filter);
+  double* naive_out = measure_convol(&naive, argv[1], filter);
   double* unravel_out = measure_convol(&unravel, argv[1], filter);
   double* dual_out = measure_convol(&dual, argv[1], filter);
   double* triple_out = measure_convol(&triple, argv[1], filter);
   double* linear_out = measure_convol(&linear, argv[1], filter);
 
-  //write_down_img(unravel_out, argv[1], "output_unravel.bmp");
+  compareImgs(linear_out, dual_out, 512, 512);
+
+  write_down_img(naive_out, argv[1], "output_naive.bmp");
+  write_down_img(dual_out, argv[1], "output_dual.bmp");
+  write_down_img(triple_out, argv[1], "output_triple.bmp");
+  write_down_img(linear_out, argv[1], "output_linear.bmp");
+  write_down_img(unravel_out, argv[1], "output_unravel.bmp");
 
   delete[] filter->matrix;
   //delete[] img;
   delete filter;
+  delete naive_out;
   delete unravel_out;
   delete dual_out;
   delete triple_out;
