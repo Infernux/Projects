@@ -16,21 +16,21 @@ void LinearConvol::convol(double* out, double* img, Filter filter, int x, int y,
     double f1 = filter->matrix[(j-y+1)*filter->width + 1];
     double f2 = filter->matrix[(j-y+1)*filter->width + 2];
 
-    n[0] += f0 * img[j*stride];
+    //n[0] += f0 * img[j*stride];
     n[0] += f1 * img[j*stride+1];
     n[1] += f0 * img[j*stride+1];
 
     int i;
-    for(i=2; i<stride-1; ++i)
+    for(i=2; i<stride-2; ++i)
     {
       n[i]   += f0 * img[(j*stride)+i];
       n[i-1] += f1 * img[(j*stride)+i];
       n[i-2] += f2 * img[(j*stride)+i];
     }
 
-    n[stride-2]   += f1 * img[(j*stride)+(stride-1)];
-    n[stride-2]   += f2 * img[(j*stride)+(stride-2)];
-    n[stride-3]   += f2 * img[(j*stride)+(stride-1)];
+    //n[stride-2]   += f1 * img[(j*stride)+(stride-1)];
+    //n[stride-2]   += f2 * img[(j*stride)+(stride-2)];
+    //n[stride-3]   += f2 * img[(j*stride)+(stride-1)];
   }
 
   for(int i=0; i<width; ++i)
