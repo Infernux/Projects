@@ -45,17 +45,18 @@ void LinearConvol::convol(double* out, double* img, Filter filter, const unsigne
   int count = 0;
   for(int j=0; j<H; j++)
   {
+    int A = S*j;
     for(int i=0; i<W; ++i, ++count)
     {
-      n[count]  = f[0] * img[S*j      +P+i-1];
-      n[count] += f[1] * img[S*j      +P+i];
-      n[count] += f[2] * img[S*j      +P+i+1];
-      n[count] += f[3] * img[S*(j+1)  +P+i-1];
-      n[count] += f[4] * img[S*(j+1)  +P+i];
-      n[count] += f[5] * img[S*(j+1)  +P+i+1];
-      n[count] += f[6] * img[S*(j+2)  +P+i-1];
-      n[count] += f[7] * img[S*(j+2)  +P+i];
-      n[count] += f[8] * img[S*(j+2)  +P+i+1];
+      n[count]  = f[0] * img[A      +P+i-1];
+      n[count] += f[1] * img[A      +P+i];
+      n[count] += f[2] * img[A      +P+i+1];
+      n[count] += f[3] * img[A+S  +P+i-1];
+      n[count] += f[4] * img[A+S  +P+i];
+      n[count] += f[5] * img[A+S  +P+i+1];
+      n[count] += f[6] * img[A+S+S  +P+i-1];
+      n[count] += f[7] * img[A+S+S  +P+i];
+      n[count] += f[8] * img[A+S+S  +P+i+1];
     }
   }
 
