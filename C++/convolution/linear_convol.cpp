@@ -42,22 +42,37 @@ void LinearConvol::convol(double* out, double* img, Filter filter, const unsigne
   double *n   = new double[total_size];
   double f[9] = { filter->matrix[0], filter->matrix[1], filter->matrix[2], filter->matrix[3], filter->matrix[4], filter->matrix[5], filter->matrix[6], filter->matrix[7], filter->matrix[8] };
 
-  int count = 0;
-  for(int j=0; j<H; j++)
+  int count = 0, A = 0, i;
+  for(int j=0; j<H; j++, A += S)
   {
-    int A = S*j;
-    for(int i=0; i<W; ++i, ++count)
+    n[count]  = f[1] * img[A      +P  ];
+    n[count] += f[2] * img[A      +P+1];
+    n[count] += f[4] * img[A+S    +P  ];
+    n[count] += f[5] * img[A+S    +P+1];
+    n[count] += f[7] * img[A+S+S  +P  ];
+    n[count] += f[8] * img[A+S+S  +P+1];
+    ++count;
+
+    for(int i=1; i<W-1; ++i, ++count)
     {
       n[count]  = f[0] * img[A      +P+i-1];
-      n[count] += f[1] * img[A      +P+i];
+      n[count] += f[1] * img[A      +P+i  ];
       n[count] += f[2] * img[A      +P+i+1];
-      n[count] += f[3] * img[A+S  +P+i-1];
-      n[count] += f[4] * img[A+S  +P+i];
-      n[count] += f[5] * img[A+S  +P+i+1];
+      n[count] += f[3] * img[A+S    +P+i-1];
+      n[count] += f[4] * img[A+S    +P+i  ];
+      n[count] += f[5] * img[A+S    +P+i+1];
       n[count] += f[6] * img[A+S+S  +P+i-1];
-      n[count] += f[7] * img[A+S+S  +P+i];
+      n[count] += f[7] * img[A+S+S  +P+i  ];
       n[count] += f[8] * img[A+S+S  +P+i+1];
     }
+
+    n[count]  = f[0] * img[A      +P+W-1-1];
+    n[count] += f[1] * img[A      +P+W-1  ];
+    n[count] += f[3] * img[A+S    +P+W-1-1];
+    n[count] += f[4] * img[A+S    +P+W-1  ];
+    n[count] += f[6] * img[A+S+S  +P+W-1-1];
+    n[count] += f[7] * img[A+S+S  +P+W-1  ];
+    ++count;
   }
 
   for(int i=0; i<total_size; ++i)
