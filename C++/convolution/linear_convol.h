@@ -12,7 +12,7 @@ class LinearConvol : public Convol
     void whatIsMyName();
 
   private:
-    void convol(double* out, double* img, Filter filter, int x, int y, int stride);
+    void convol(double* out, double* img, Filter filter, const unsigned int padded_width, const unsigned int padded_height, const unsigned padding);
 };
 
 #endif //LINEAR_CONVOL__H_
