@@ -17,6 +17,8 @@
 #define Kg 0.587
 #define Kb 0.114
 
+//#define WRITE_DOWN
+
 using namespace cimg_library;
 using namespace std;
 
@@ -29,19 +31,19 @@ void print_timediff(struct timespec *start, struct timespec *end)
 
 double* zero_pad(double* mat, int width, int height, int padding);
 
-double* RGBSpaceToYCrCm(CImg<double> img)
+double* RGBSpaceToYCrCm(CImg<double> *img)
 {
-  double* out = new double[img.width() * img.height()];
+  double* out = new double[img->width() * img->height()];
 
-  for(int j=0; j<img.height(); ++j)
+  for(int j=0; j<img->height(); ++j)
   {
-    for(int i=0; i<img.width(); ++i)
+    for(int i=0; i<img->width(); ++i)
     {
-      double red = img(i, j, 0);
-      double green = img(i, j, 1);
-      double blue = img(i, j, 2);
+      double red = (*img)(i, j, 0);
+      double green = (*img)(i, j, 1);
+      double blue = (*img)(i, j, 2);
 
-      out[i+j*img.width()] = Kr*red + Kg*green + Kb*blue;
+      out[i+j*img->width()] = Kr*red + Kg*green + Kb*blue;
       //double Pb = 0.5f * (blue - Y)/(1-Kb);
       //double Pr = 0.5f * (red - Y)/(1-Kr);
     }
@@ -74,15 +76,13 @@ void write_down_img(double* buffer, char* img_path, string output)
   img.save(output.c_str());
 }
 
-double* measure_convol(Convol *fa, char* img_path, Filter filter)
+double* measure_convol(Convol *fa, CImg<double> *img, Filter filter)
 {
-  CImg<double> img(img_path);
-  printf("w: %d, h: %d\n", img.width(), img.height());
   fa->whatIsMyName();
 
   double* img2 = RGBSpaceToYCrCm(img);
 
-  int width = img.width(), height = img.height();
+  int width = img->width(), height = img->height();
   int padding = 1;
   double* padded_img = zero_pad(img2,width,height,padding);
 
@@ -107,7 +107,7 @@ bool compareImgs(double* a, double* b, int width, int height)
   {
     for(int x=0; x<width; ++x)
     {
-      if(a[x + y*width] != b[x + y*width])
+      if(abs(a[x + y*width] - b[x + y*width]) > 1e-5)
       {
         printf("pixel x:%d, y:%d (%f, %f)\n", x, y, a[x + y*width], b[x + y*width]);
         return false;
@@ -172,9 +172,10 @@ double* load_img(const char* path)
 
 int main(int argc, char** argv)
 {
+  CImg<double> img(argv[1]);
   //Filter filter = createSharpeningFilter();
   Filter filter = createEdgeDetectionFilter();
-  //Filter blur = createBlurFilter();
+  //Filter filter = createBlurFilter();
 
   DualConvol dual;
   NaiveConvol naive;
@@ -182,27 +183,29 @@ int main(int argc, char** argv)
   TripleConvol triple;
   LinearConvol linear;
 
-  double* naive_out = measure_convol(&naive, argv[1], filter);
-  double* unravel_out = measure_convol(&unravel, argv[1], filter);
-  double* dual_out = measure_convol(&dual, argv[1], filter);
-  double* triple_out = measure_convol(&triple, argv[1], filter);
-  double* linear_out = measure_convol(&linear, argv[1], filter);
+  //double* naive_out = measure_convol(&naive, &img, filter);
+  //double* unravel_out = measure_convol(&unravel, &img, filter);
+  double* dual_out = measure_convol(&dual, &img, filter);
+  //double* triple_out = measure_convol(&triple, &img, filter);
+  double* linear_out = measure_convol(&linear, &img, filter);
 
-  compareImgs(linear_out, dual_out, 512, 512);
+  compareImgs(linear_out, dual_out, img.width(), img.height());
 
+#ifdef WRITE_DOWN
   write_down_img(naive_out, argv[1], "output_naive.bmp");
   write_down_img(dual_out, argv[1], "output_dual.bmp");
   write_down_img(triple_out, argv[1], "output_triple.bmp");
   write_down_img(linear_out, argv[1], "output_linear.bmp");
   write_down_img(unravel_out, argv[1], "output_unravel.bmp");
+#endif
 
   delete[] filter->matrix;
   //delete[] img;
   delete filter;
-  delete naive_out;
-  delete unravel_out;
+  //delete naive_out;
+  //delete unravel_out;
   delete dual_out;
-  delete triple_out;
+  //delete triple_out;
   delete linear_out;
 }
 
