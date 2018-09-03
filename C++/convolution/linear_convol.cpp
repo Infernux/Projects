@@ -43,38 +43,42 @@ void LinearConvol::convol(double* out, double* img, Filter filter, const unsigne
   double f[9] = { filter->matrix[0], filter->matrix[1], filter->matrix[2], filter->matrix[3], filter->matrix[4], filter->matrix[5], filter->matrix[6], filter->matrix[7], filter->matrix[8] };
 
   int count = 0, A = 0, i;
-  double* trav = img;
+  img   = &img[P];
+  double *img2  = &img[S];
+  double *img3  = &img[2*S];
   for(int j=0; j<H; j++, A += S)
   {
-    trav = &img[A+P];
-    n[count]  = f[1] * trav[     0  ];
-    n[count] += f[2] * trav[     1];
-    n[count] += f[4] * trav[S      ];
-    n[count] += f[5] * trav[S    +1];
-    n[count] += f[7] * trav[S+S    ];
-    n[count] += f[8] * trav[S+S  +1];
+    n[count]  = f[1] * img[     0  ];
+    n[count] += f[2] * img[     1];
+    n[count] += f[4] * img2[  0 ];
+    n[count] += f[5] * img2[  1];
+    n[count] += f[7] * img3[  0 ];
+    n[count] += f[8] * img3[  1];
     ++count;
 
     for(int i=1; i<W-1; ++i, ++count)
     {
-      n[count]  = f[0] * trav[     i-1];
-      n[count] += f[1] * trav[     i  ];
-      n[count] += f[2] * trav[     i+1];
-      n[count] += f[3] * trav[S    +i-1];
-      n[count] += f[4] * trav[S    +i  ];
-      n[count] += f[5] * trav[S    +i+1];
-      n[count] += f[6] * trav[S+S  +i-1];
-      n[count] += f[7] * trav[S+S  +i  ];
-      n[count] += f[8] * trav[S+S  +i+1];
+      n[count]  = f[0] * img[     i-1];
+      n[count] += f[1] * img[     i  ];
+      n[count] += f[2] * img[     i+1];
+      n[count] += f[3] * img2[i-1];
+      n[count] += f[4] * img2[i  ];
+      n[count] += f[5] * img2[i+1];
+      n[count] += f[6] * img3[i-1];
+      n[count] += f[7] * img3[i  ];
+      n[count] += f[8] * img3[i+1];
     }
 
-    n[count]  = f[0] * trav[     W-1-1];
-    n[count] += f[1] * trav[     W-1  ];
-    n[count] += f[3] * trav[S    +W-1-1];
-    n[count] += f[4] * trav[S    +W-1  ];
-    n[count] += f[6] * trav[S+S  +W-1-1];
-    n[count] += f[7] * trav[S+S  +W-1  ];
+    n[count]  = f[0] * img[     W-1-1];
+    n[count] += f[1] * img[     W-1  ];
+    n[count] += f[3] * img2[W-1-1];
+    n[count] += f[4] * img2[W-1  ];
+    n[count] += f[6] * img3[W-1-1];
+    n[count] += f[7] * img3[W-1  ];
     ++count;
+    img = img2;
+    img2 = img3;
+    img3 = &img3[S];
   }
 
   for(int i=0; i<total_size; ++i)
