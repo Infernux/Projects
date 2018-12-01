@@ -1,11 +1,15 @@
+CC=g++
+OPTIONS=-mavx
+#CC=aarch64-linux-gnu-g++
+
 CIMG_DEPS=-lm -lpthread -lX11
-OBJ = main.o unravel_convol.o convol.o dual_convol.o naive_convol.o triple_convol.o filters.o linear_convol.o
+OBJ = main.o unravel_convol.o convol.o dual_convol.o naive_convol.o triple_convol.o filters.o linear_convol.o avx_convol.o
 
 all: $(OBJ)
-	g++ -o run -g $(OBJ) $(CIMG_DEPS)
+	$(CC) -o run -g $(OBJ) $(CIMG_DEPS)
 
 %.o : %.cpp
-	g++ -c -o $@ $<
+	$(CC) -g -c -o $@ $< $(OPTIONS)
 
 clean:
 	rm *.o
