@@ -1,0 +1,5 @@
+BASE_FOLDER=~/toolchains/armv8
+
+export SYSROOT=$BASE_FOLDER/sysroot/
+export CC="$BASE_FOLDER/bin/clang --sysroot=$SYSROOT"
+export CXX="$BASE_FOLDER/bin/clang --sysroot=$SYSROOT"
