@@ -16,4 +16,4 @@ copy: run
 	adb push run /data/local/tmp/
 
 run: copy
-	adb shell "chmod +x /data/local/tmp/run; /data/local/tmp/run"
+	adb shell "chmod +x /data/local/tmp/run; LD_LIBRARY_PATH=/data/local/tmp/ /data/local/tmp/run"
