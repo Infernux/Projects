@@ -64,6 +64,26 @@ TEST_F(TestSuite, testcase5) {
   EXPECT_EQ(output.y, 1.5);
 }
 
+TEST_F(TestSuite, testcase6) {
+  Point p1 = { .x = 0, .y = 1 };
+  Point p2 = { .x = 0, .y = 2 };
+  Point output;
+  interpolate(&output, &p1, &p2);
+
+  EXPECT_EQ(output.x, 0);
+  EXPECT_EQ(output.y, 1.5);
+}
+
+TEST_F(TestSuite, vertical2) {
+  Point p1 = { .x = 0, .y = 2 };
+  Point p2 = { .x = 0, .y = 1 };
+  Point output;
+  interpolate(&output, &p1, &p2);
+
+  EXPECT_EQ(output.x, 0);
+  EXPECT_EQ(output.y, 1.5);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
