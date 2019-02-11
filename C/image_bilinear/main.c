@@ -20,11 +20,11 @@ void convertBinaryPGMToTextPGM(const char *path)
   saveAsTextPgm("pgmed.pgm", buff, width, height, max_val);
 }
 
-void main(int argc, char **argv)
+void imageDoubling(const char *path)
 {
   uint8_t buff[MAX_WIDTH * MAX_HEIGHT];
   int width, height, max_val;
-  loadImage(argv[1], buff, &width, &height, &max_val);
+  loadImage(path, buff, &width, &height, &max_val);
 
   printf("width : %d, height : %d\n", width, height);
   printf("max val : %d\n", max_val);
@@ -36,4 +36,27 @@ void main(int argc, char **argv)
 
   saveAsTextPgm("pgmed.pgm", doubled_image, width * 2, height * 2, max_val);
   free(doubled_image);
+}
+
+void stupidImageHalving(const char *path)
+{
+  uint8_t buff[MAX_WIDTH * MAX_HEIGHT];
+  int width, height, max_val;
+  loadImage(path, buff, &width, &height, &max_val);
+
+  printf("width : %d, height : %d\n", width, height);
+  printf("max val : %d\n", max_val);
+
+  uint8_t *output = addBorderToImage(buff, width, height, 0, 0, 0, 0);
+
+  uint8_t *halved_image = halfImage_skip(output, width, height, width);
+  free(output);
+
+  saveAsTextPgm("pgmed.pgm", halved_image, width / 2, height / 2, max_val);
+  free(halved_image);
+}
+
+void main(int argc, char **argv)
+{
+  stupidImageHalving(argv[1]);
 }
