@@ -47,16 +47,32 @@ void stupidImageHalving(const char *path)
   printf("width : %d, height : %d\n", width, height);
   printf("max val : %d\n", max_val);
 
-  uint8_t *output = addBorderToImage(buff, width, height, 0, 0, 0, 0);
+  uint8_t *halved_image = halfImage_skip(buff, width, height, width);
 
-  uint8_t *halved_image = halfImage_skip(output, width, height, width);
+  saveAsTextPgm("stupid_halving.pgm", halved_image, width / 2, height / 2, max_val);
+  free(halved_image);
+}
+
+void lessStupidImageHalving(const char *path)
+{
+  uint8_t buff[MAX_WIDTH * MAX_HEIGHT];
+  int width, height, max_val;
+  loadImage(path, buff, &width, &height, &max_val);
+
+  printf("width : %d, height : %d\n", width, height);
+  printf("max val : %d\n", max_val);
+
+  uint8_t *output = addBorderToImage(buff, width, height, 0, 1, 0, 1);
+
+  uint8_t *halved_image = halfImage_Linearish(output, width, height, width + 1);
   free(output);
 
-  saveAsTextPgm("pgmed.pgm", halved_image, width / 2, height / 2, max_val);
+  saveAsTextPgm("less_stupid_halving.pgm", halved_image, width / 2, height / 2, max_val);
   free(halved_image);
 }
 
 void main(int argc, char **argv)
 {
   stupidImageHalving(argv[1]);
+  lessStupidImageHalving(argv[1]);
 }
