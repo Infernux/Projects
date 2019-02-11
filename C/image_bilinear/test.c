@@ -150,6 +150,29 @@ TEST_F(TestSuite, half_image_skip) {
   ASSERT_TRUE(res);
 }
 
+TEST_F(TestSuite, half_image_mix) {
+  uint8_t image[] = {
+                1, 2, 3, 4,
+                2, 2, 4, 3,
+                9,12,11,12,
+                20,32,1,8
+  };
+
+  uint8_t expected[] = {
+                6, 3,
+                5, 2
+  };
+
+  uint8_t *output = addBorderToImage(image, 4, 4, 0, 1, 0, 1);
+  uint8_t *half_image = halfImage_Linearish(output, 4, 4, 5);
+  free(output);
+
+  bool res = compareImages(expected, half_image, 2, 2, 2, 2);
+  free(half_image);
+
+  ASSERT_TRUE(res);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -15,5 +15,6 @@ void printPoint(Point *p);
 uint8_t* addBorderToImage(const uint8_t *image, const int width, const int height, const int top_border, const int bottom_border, const int left_border, const int right_border);
 uint8_t* doubleImage(const uint8_t *image, const int width, const int height, const int stride);
 uint8_t* halfImage_skip(const uint8_t *image, const int width, const int height, const int stride);
+uint8_t* halfImage_Linearish(const uint8_t *image, const int width, const int height, const int stride);
 
 #endif /* INTERPOLATE_H__ */
