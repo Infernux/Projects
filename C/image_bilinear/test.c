@@ -129,6 +129,27 @@ TEST_F(TestSuite, double_image) {
   ASSERT_TRUE(res);
 }
 
+TEST_F(TestSuite, half_image_skip) {
+  uint8_t image[] = {
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9,10,11,12,
+                13,14,15,16
+  };
+
+  uint8_t expected[] = {
+                1, 3,
+                9, 11
+  };
+
+  uint8_t *half_image = halfImage_skip(image, 4, 4, 4);
+
+  bool res = compareImages(expected, half_image, 2, 2, 2, 2);
+  free(half_image);
+
+  ASSERT_TRUE(res);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -79,3 +79,24 @@ uint8_t* doubleImage(const uint8_t *image, const int width, const int height, co
 
   return output;
 }
+
+/* skip every other pixel */
+uint8_t* halfImage_skip(const uint8_t *image, const int width, const int height, const int stride)
+{
+  int new_stride = width / 2;
+  int new_height = height / 2;
+  uint8_t *output = (uint8_t*) malloc(sizeof(uint8_t) * new_stride * new_height);
+
+  int x, y;
+  int in_index, out_index;
+  for(y=0; y<height; y+=2)
+  {
+    for(x=0; x<width; x+=2)
+    {
+      int index = (y / 2.) * new_stride + x / 2.;
+      output[index] = image[y * stride + x];
+    }
+  }
+  
+  return output;
+}
