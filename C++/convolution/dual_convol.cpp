@@ -1,6 +1,6 @@
 #include "dual_convol.h"
 
-void DualConvol::convol(double* out, double* img, Filter filter, int x, int y, int stride)
+void DualConvol::convol(uint8_t* out, uint8_t* img, Filter filter, int x, int y, int stride)
 {
   double n = 0.f, n2 = 0.f;
   n += img[x-1 + (y-1)*stride] * filter->matrix[0];
@@ -32,7 +32,7 @@ void DualConvol::convol(double* out, double* img, Filter filter, int x, int y, i
   out[(x+1-padding) + (y-padding) * width] = n2;
 }
 
-void DualConvol::apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding)
+void DualConvol::apply_filter(uint8_t* out, uint8_t* padded_img, Filter filter, int width, int height, int padding)
 {
   for(int y=0 + padding; y<height + padding; ++y)
   {

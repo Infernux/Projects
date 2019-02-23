@@ -6,7 +6,7 @@
 class Convol
 {
   public:
-    virtual void apply_filter(double* out, double* padded_img, Filter filter, int width, int height, int padding) = 0;
+    virtual void apply_filter(uint8_t* out, uint8_t* padded_img, Filter filter, int width, int height, int padding) = 0;
     virtual void whatIsMyName() = 0;
 };
 
