@@ -52,9 +52,13 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
     width*3,
     width*4
   };
-  for(j=0; j<height-5; ++j)
+  uint64_t *h_offset64 = (uint64_t*)h_offset;
+  uint64_t increment = ((uint64_t)width << 32) + width;
+  j=0;
+  do
   {
-    for(i=0; i<width-5; i+=2)
+    i=0;
+    do
     {
       int32_t tmp, tmp2;
       tmp   = filter_one_line(&image[h_offset[0]+i], &filter[0*5]);
@@ -62,17 +66,17 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
       tmp  += filter_one_line(&image[h_offset[2]+i], &filter[2*5]);
       tmp  += filter_one_line(&image[h_offset[3]+i], &filter[3*5]);
       tmp  += filter_one_line(&image[h_offset[4]+i], &filter[4*5]);
-
-      output[h_offset[0] + i] = tmp;
-
       tmp2   = filter_one_line(&image[h_offset[0]+i+1], &filter[0*5]);
       tmp2  += filter_one_line(&image[h_offset[1]+i+1], &filter[1*5]);
       tmp2  += filter_one_line(&image[h_offset[2]+i+1], &filter[2*5]);
       tmp2  += filter_one_line(&image[h_offset[3]+i+1], &filter[3*5]);
       tmp2  += filter_one_line(&image[h_offset[4]+i+1], &filter[4*5]);
 
+      output[h_offset[0] + i] = tmp;
       output[h_offset[0] + i + 1] = tmp2;
-    }
+
+      i+=2;
+    }while(i<width-5);
 
     for(; i<width-5; ++i)
     {
@@ -85,12 +89,11 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
 
       output[h_offset[0] + i] = tmp;
     }
-    h_offset[0]+=width;
-    h_offset[1]+=width;
-    h_offset[2]+=width;
-    h_offset[3]+=width;
+    h_offset64[0] += increment;
+    h_offset64[1] += increment;
     h_offset[4]+=width;
-  }
+    j++;
+  }while(j < height-5);
 }
 
 int main()
