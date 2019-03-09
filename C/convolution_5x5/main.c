@@ -6,8 +6,8 @@
 
 #include "utils.h"
 
-#define IMG_HEIGHT  5000
-#define IMG_WIDTH   5000
+#define IMG_HEIGHT  1000
+#define IMG_WIDTH   1000
 
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
@@ -44,20 +44,52 @@ static inline int32_t filter_one_line(int32_t *filter, int32_t *image)
 
 static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
-  uint32_t i,j,k,l;
+  uint32_t i,j;
+  uint32_t h_offset[5] = {
+    0,
+    width,
+    width*2,
+    width*3,
+    width*4
+  };
   for(j=0; j<height-5; ++j)
   {
-    for(i=0; i<width-5; ++i)
+    for(i=0; i<width-5; i+=2)
+    {
+      int32_t tmp, tmp2;
+      tmp   = filter_one_line(&image[h_offset[0]+i], &filter[0*5]);
+      tmp  += filter_one_line(&image[h_offset[1]+i], &filter[1*5]);
+      tmp  += filter_one_line(&image[h_offset[2]+i], &filter[2*5]);
+      tmp  += filter_one_line(&image[h_offset[3]+i], &filter[3*5]);
+      tmp  += filter_one_line(&image[h_offset[4]+i], &filter[4*5]);
+
+      output[h_offset[0] + i] = tmp;
+
+      tmp2   = filter_one_line(&image[h_offset[0]+i+1], &filter[0*5]);
+      tmp2  += filter_one_line(&image[h_offset[1]+i+1], &filter[1*5]);
+      tmp2  += filter_one_line(&image[h_offset[2]+i+1], &filter[2*5]);
+      tmp2  += filter_one_line(&image[h_offset[3]+i+1], &filter[3*5]);
+      tmp2  += filter_one_line(&image[h_offset[4]+i+1], &filter[4*5]);
+
+      output[h_offset[0] + i + 1] = tmp2;
+    }
+
+    for(; i<width-5; ++i)
     {
       int32_t tmp = 0;
-      tmp   = filter_one_line(&image[(j+0)*width+i], &filter[0*5]);
-      tmp  += filter_one_line(&image[(j+1)*width+i], &filter[1*5]);
-      tmp  += filter_one_line(&image[(j+2)*width+i], &filter[2*5]);
-      tmp  += filter_one_line(&image[(j+3)*width+i], &filter[3*5]);
-      tmp  += filter_one_line(&image[(j+4)*width+i], &filter[4*5]);
+      tmp   = filter_one_line(&image[h_offset[0]+i], &filter[0*5]);
+      tmp  += filter_one_line(&image[h_offset[1]+i], &filter[1*5]);
+      tmp  += filter_one_line(&image[h_offset[2]+i], &filter[2*5]);
+      tmp  += filter_one_line(&image[h_offset[3]+i], &filter[3*5]);
+      tmp  += filter_one_line(&image[h_offset[4]+i], &filter[4*5]);
 
-      output[j*width + i] = tmp;
+      output[h_offset[0] + i] = tmp;
     }
+    h_offset[0]+=width;
+    h_offset[1]+=width;
+    h_offset[2]+=width;
+    h_offset[3]+=width;
+    h_offset[4]+=width;
   }
 }
 
@@ -69,8 +101,8 @@ int main()
   static int32_t ref_output[IMG_WIDTH * IMG_HEIGHT];
   static int32_t opt_output[IMG_WIDTH * IMG_HEIGHT];
 
-  memset(ref_output, 0, IMG_WIDTH * IMG_HEIGHT);
-  memset(opt_output, 0, IMG_WIDTH * IMG_HEIGHT);
+  memset(ref_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
+  memset(opt_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
 
   setup5x5Filter(filter5x5);
   setupImage(img, IMG_WIDTH, IMG_HEIGHT);
