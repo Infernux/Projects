@@ -45,8 +45,8 @@ static inline int32_t filter_one_line(int32_t *filter, int32_t *image)
 static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
   uint32_t i,j;
-  uint32_t h_offset = 0;
   int32_t *traveler = image;
+  int32_t *output_trav = output;
   j=0;
   do
   {
@@ -65,10 +65,11 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
       tmp2  += filter_one_line(&traveler[width*3+1], &filter[3*5]);
       tmp2  += filter_one_line(&traveler[width*4+1], &filter[4*5]);
 
-      output[h_offset + i] = tmp;
-      output[h_offset + i + 1] = tmp2;
+      output_trav[0] = tmp;
+      output_trav[1] = tmp2;
 
-      traveler = &traveler[2];
+      output_trav += 2;
+      traveler += 2;
       i+=2;
     }while(i<width-5);
 
@@ -81,14 +82,14 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
       tmp  += filter_one_line(&traveler[width*3], &filter[3*5]);
       tmp  += filter_one_line(&traveler[width*4], &filter[4*5]);
 
-      output[h_offset + i] = tmp;
-      traveler = &traveler[1];
+      output_trav[0] = tmp;
+      output_trav++;
+      traveler++;
     }
 
-    h_offset += width;
-
     j++;
-    traveler = &image[width*j];
+    output_trav += 4;
+    traveler += 4;
   }while(j < height-5);
 }
 
