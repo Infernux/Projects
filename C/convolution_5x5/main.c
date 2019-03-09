@@ -2,30 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#define IMG_HEIGHT  50
-#define IMG_WIDTH   50
+#include "utils.h"
 
-static void setup5x5Filter(int32_t *filter)
-{
-  uint32_t i;
-  for(i=0; i<25; ++i)
-  {
-    filter[i] = i%5;
-  }
-}
-
-static void setupImage(int32_t *img, uint32_t width, uint32_t height)
-{
-  uint32_t i,j;
-  for(j=0; j<height; ++j)
-  {
-    for(i=0; i<width; ++i)
-    {
-      img[j*width + i] = j*width + i;
-    }
-  }
-}
+#define IMG_HEIGHT  5000
+#define IMG_WIDTH   5000
 
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
@@ -47,23 +29,6 @@ static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *out
   }
 }
 
-static uint32_t verifyImages(int32_t *image_1, int32_t *image_2, uint32_t width, uint32_t height)
-{
-  uint32_t i,j;
-  uint32_t missmatches = 0;
-  for(j=0; j<height-5; ++j)
-  {
-    for(i=0; i<width-5; ++i)
-    {
-      if(image_1[j*width + i] != image_2[j*width + i])
-      {
-        missmatches++;
-      }
-    }
-  }
-  return missmatches;
-}
-
 int main()
 {
   printf("Convolution 5x5\n");
@@ -78,8 +43,17 @@ int main()
   setup5x5Filter(filter5x5);
   setupImage(img, IMG_WIDTH, IMG_HEIGHT);
 
+  struct timespec start, end;
+
+  clock_gettime(CLOCK_MONOTONIC, &start);
   applyFilterToImage_ref(filter5x5, img, ref_output, IMG_WIDTH, IMG_HEIGHT);
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  print_timediff("Reference", &start, &end);
+
+  clock_gettime(CLOCK_MONOTONIC, &start);
   applyFilterToImage_ref(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  print_timediff("Optimized", &start, &end);
 
   uint32_t missmatches = verifyImages(ref_output, opt_output, IMG_WIDTH, IMG_HEIGHT);
   printf("Missmatched %d/%d\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
