@@ -6,8 +6,8 @@
 
 #include "utils.h"
 
-#define IMG_HEIGHT  500
-#define IMG_WIDTH   500
+#define IMG_HEIGHT  5000
+#define IMG_WIDTH   5000
 
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
@@ -29,6 +29,19 @@ static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *out
   }
 }
 
+static inline int32_t filter_one_line(int32_t *filter, int32_t *image)
+{
+  int32_t tmp;
+
+  tmp  = image[0] * filter[0];
+  tmp += image[1] * filter[1];
+  tmp += image[2] * filter[2];
+  tmp += image[3] * filter[3];
+  tmp += image[4] * filter[4];
+
+  return tmp;
+}
+
 static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
   uint32_t i,j,k,l;
@@ -37,14 +50,12 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
     for(i=0; i<width-5; ++i)
     {
       int32_t tmp = 0;
-      for(k=0; k<5; k++)
-      {
-        tmp += image[(j+k)*width+i] * filter[k*5];
-        tmp += image[(j+k)*width+i+1] * filter[k*5+1];
-        tmp += image[(j+k)*width+i+2] * filter[k*5+2];
-        tmp += image[(j+k)*width+i+3] * filter[k*5+3];
-        tmp += image[(j+k)*width+i+4] * filter[k*5+4];
-      }
+      tmp   = filter_one_line(&image[(j+0)*width+i], &filter[0*5]);
+      tmp  += filter_one_line(&image[(j+1)*width+i], &filter[1*5]);
+      tmp  += filter_one_line(&image[(j+2)*width+i], &filter[2*5]);
+      tmp  += filter_one_line(&image[(j+3)*width+i], &filter[3*5]);
+      tmp  += filter_one_line(&image[(j+4)*width+i], &filter[4*5]);
+
       output[j*width + i] = tmp;
     }
   }
