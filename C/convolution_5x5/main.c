@@ -45,15 +45,8 @@ static inline int32_t filter_one_line(int32_t *filter, int32_t *image)
 static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
   uint32_t i,j;
-  uint32_t h_offset[5] = {
-    0,
-    width,
-    width*2,
-    width*3,
-    width*4
-  };
-  uint64_t *h_offset64 = (uint64_t*)h_offset;
-  uint64_t increment = ((uint64_t)width << 32) + width;
+  uint32_t h_offset = 0;
+  int32_t *traveler = image;
   j=0;
   do
   {
@@ -61,38 +54,41 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
     do
     {
       int32_t tmp, tmp2;
-      tmp   = filter_one_line(&image[h_offset[0]+i], &filter[0*5]);
-      tmp  += filter_one_line(&image[h_offset[1]+i], &filter[1*5]);
-      tmp  += filter_one_line(&image[h_offset[2]+i], &filter[2*5]);
-      tmp  += filter_one_line(&image[h_offset[3]+i], &filter[3*5]);
-      tmp  += filter_one_line(&image[h_offset[4]+i], &filter[4*5]);
-      tmp2   = filter_one_line(&image[h_offset[0]+i+1], &filter[0*5]);
-      tmp2  += filter_one_line(&image[h_offset[1]+i+1], &filter[1*5]);
-      tmp2  += filter_one_line(&image[h_offset[2]+i+1], &filter[2*5]);
-      tmp2  += filter_one_line(&image[h_offset[3]+i+1], &filter[3*5]);
-      tmp2  += filter_one_line(&image[h_offset[4]+i+1], &filter[4*5]);
+      tmp   = filter_one_line(&traveler[0],         &filter[0*5]);
+      tmp  += filter_one_line(&traveler[width],   &filter[1*5]);
+      tmp  += filter_one_line(&traveler[width*2], &filter[2*5]);
+      tmp  += filter_one_line(&traveler[width*3], &filter[3*5]);
+      tmp  += filter_one_line(&traveler[width*4], &filter[4*5]);
+      tmp2   = filter_one_line(&traveler[1], &filter[0*5]);
+      tmp2  += filter_one_line(&traveler[width+1], &filter[1*5]);
+      tmp2  += filter_one_line(&traveler[width*2+1], &filter[2*5]);
+      tmp2  += filter_one_line(&traveler[width*3+1], &filter[3*5]);
+      tmp2  += filter_one_line(&traveler[width*4+1], &filter[4*5]);
 
-      output[h_offset[0] + i] = tmp;
-      output[h_offset[0] + i + 1] = tmp2;
+      output[h_offset + i] = tmp;
+      output[h_offset + i + 1] = tmp2;
 
+      traveler = &traveler[2];
       i+=2;
     }while(i<width-5);
 
     for(; i<width-5; ++i)
     {
       int32_t tmp = 0;
-      tmp   = filter_one_line(&image[h_offset[0]+i], &filter[0*5]);
-      tmp  += filter_one_line(&image[h_offset[1]+i], &filter[1*5]);
-      tmp  += filter_one_line(&image[h_offset[2]+i], &filter[2*5]);
-      tmp  += filter_one_line(&image[h_offset[3]+i], &filter[3*5]);
-      tmp  += filter_one_line(&image[h_offset[4]+i], &filter[4*5]);
+      tmp   = filter_one_line(&traveler[0],         &filter[0*5]);
+      tmp  += filter_one_line(&traveler[width],   &filter[1*5]);
+      tmp  += filter_one_line(&traveler[width*2], &filter[2*5]);
+      tmp  += filter_one_line(&traveler[width*3], &filter[3*5]);
+      tmp  += filter_one_line(&traveler[width*4], &filter[4*5]);
 
-      output[h_offset[0] + i] = tmp;
+      output[h_offset + i] = tmp;
+      traveler = &traveler[1];
     }
-    h_offset64[0] += increment;
-    h_offset64[1] += increment;
-    h_offset[4]+=width;
+
+    h_offset += width;
+
     j++;
+    traveler = &image[width*j];
   }while(j < height-5);
 }
 
