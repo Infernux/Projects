@@ -6,8 +6,8 @@
 
 #include "utils.h"
 
-#define IMG_HEIGHT  5000
-#define IMG_WIDTH   5000
+#define IMG_HEIGHT  500
+#define IMG_WIDTH   500
 
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
@@ -23,6 +23,27 @@ static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *out
         {
           tmp += image[(j+k)*width+i+l] * filter[k*5+l];
         }
+      }
+      output[j*width + i] = tmp;
+    }
+  }
+}
+
+static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
+{
+  uint32_t i,j,k,l;
+  for(j=0; j<height-5; ++j)
+  {
+    for(i=0; i<width-5; ++i)
+    {
+      int32_t tmp = 0;
+      for(k=0; k<5; k++)
+      {
+        tmp += image[(j+k)*width+i] * filter[k*5];
+        tmp += image[(j+k)*width+i+1] * filter[k*5+1];
+        tmp += image[(j+k)*width+i+2] * filter[k*5+2];
+        tmp += image[(j+k)*width+i+3] * filter[k*5+3];
+        tmp += image[(j+k)*width+i+4] * filter[k*5+4];
       }
       output[j*width + i] = tmp;
     }
@@ -51,10 +72,15 @@ int main()
   print_timediff("Reference", &start, &end);
 
   clock_gettime(CLOCK_MONOTONIC, &start);
-  applyFilterToImage_ref(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
+  applyFilterToImage_opt(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
   clock_gettime(CLOCK_MONOTONIC, &end);
   print_timediff("Optimized", &start, &end);
 
   uint32_t missmatches = verifyImages(ref_output, opt_output, IMG_WIDTH, IMG_HEIGHT);
-  printf("Missmatched %d/%d\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
+  if(missmatches != 0)
+  {
+    printf("\e[38;5;1;5mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
+  } else {
+    printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
+  }
 }
