@@ -36,7 +36,70 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
   int32_t *output_trav = output;
   for(j=0; j<height-5; j++)
   {
-    for(i=0; i<width-5; i++)
+    for(i=0; i<width-5; i+=2)
+    {
+      int32_t tmp;
+      tmp  = traveler[0] * filter[0];
+      tmp += traveler[1] * filter[1];
+      tmp += traveler[2] * filter[2];
+      tmp += traveler[3] * filter[3];
+      tmp += traveler[4] * filter[4];
+      tmp += traveler[0+width] * filter[5];
+      tmp += traveler[1+width] * filter[6];
+      tmp += traveler[2+width] * filter[7];
+      tmp += traveler[3+width] * filter[8];
+      tmp += traveler[4+width] * filter[9];
+      tmp += traveler[0+width*2] * filter[10];
+      tmp += traveler[1+width*2] * filter[11];
+      tmp += traveler[2+width*2] * filter[12];
+      tmp += traveler[3+width*2] * filter[13];
+      tmp += traveler[4+width*2] * filter[14];
+      tmp += traveler[0+width*3] * filter[15];
+      tmp += traveler[1+width*3] * filter[16];
+      tmp += traveler[2+width*3] * filter[17];
+      tmp += traveler[3+width*3] * filter[18];
+      tmp += traveler[4+width*3] * filter[19];
+      tmp += traveler[0+width*4] * filter[20];
+      tmp += traveler[1+width*4] * filter[21];
+      tmp += traveler[2+width*4] * filter[22];
+      tmp += traveler[3+width*4] * filter[23];
+      tmp += traveler[4+width*4] * filter[24];
+
+      int32_t tmp2;
+      tmp2  = traveler[1+0] * filter[0];
+      tmp2 += traveler[1+1] * filter[1];
+      tmp2 += traveler[1+2] * filter[2];
+      tmp2 += traveler[1+3] * filter[3];
+      tmp2 += traveler[1+4] * filter[4];
+      tmp2 += traveler[1+0+width] * filter[5];
+      tmp2 += traveler[1+1+width] * filter[6];
+      tmp2 += traveler[1+2+width] * filter[7];
+      tmp2 += traveler[1+3+width] * filter[8];
+      tmp2 += traveler[1+4+width] * filter[9];
+      tmp2 += traveler[1+0+width*2] * filter[10];
+      tmp2 += traveler[1+1+width*2] * filter[11];
+      tmp2 += traveler[1+2+width*2] * filter[12];
+      tmp2 += traveler[1+3+width*2] * filter[13];
+      tmp2 += traveler[1+4+width*2] * filter[14];
+      tmp2 += traveler[1+0+width*3] * filter[15];
+      tmp2 += traveler[1+1+width*3] * filter[16];
+      tmp2 += traveler[1+2+width*3] * filter[17];
+      tmp2 += traveler[1+3+width*3] * filter[18];
+      tmp2 += traveler[1+4+width*3] * filter[19];
+      tmp2 += traveler[1+0+width*4] * filter[20];
+      tmp2 += traveler[1+1+width*4] * filter[21];
+      tmp2 += traveler[1+2+width*4] * filter[22];
+      tmp2 += traveler[1+3+width*4] * filter[23];
+      tmp2 += traveler[1+4+width*4] * filter[24];
+
+      output_trav[0] = tmp;
+      output_trav[1] = tmp2;
+
+      output_trav+=2;
+      traveler+=2;
+    }
+
+    for(; i<width-5; i++)
     {
       int32_t tmp;
       tmp  = traveler[0] * filter[0];
@@ -71,8 +134,8 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
       traveler++;
     }
 
-    output_trav += 5;
-    traveler += 5;
+    output_trav += 4;
+    traveler += 4;
   }
 }
 
