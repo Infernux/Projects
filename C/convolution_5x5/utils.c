@@ -49,5 +49,5 @@ void print_timediff(char *text, struct timespec *start, struct timespec *end)
     ns = 1e9 - ns;
   }
 
-  printf("%s : %ds %ldms\n", text, s, ns);
+  printf("%s : %ds %10ldns\n", text, s, ns);
 }
