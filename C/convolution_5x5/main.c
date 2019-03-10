@@ -29,68 +29,51 @@ static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *out
   }
 }
 
-static inline int32_t filter_one_line(int32_t *filter, int32_t *image)
-{
-  int32_t tmp;
-
-  tmp  = image[0] * filter[0];
-  tmp += image[1] * filter[1];
-  tmp += image[2] * filter[2];
-  tmp += image[3] * filter[3];
-  tmp += image[4] * filter[4];
-
-  return tmp;
-}
-
 static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
   uint32_t i,j;
   int32_t *traveler = image;
   int32_t *output_trav = output;
-  j=0;
-  do
+  for(j=0; j<height-5; j++)
   {
-    i=0;
-    do
+    for(i=0; i<width-5; i++)
     {
-      int32_t tmp, tmp2;
-      tmp   = filter_one_line(&traveler[0],         &filter[0*5]);
-      tmp  += filter_one_line(&traveler[width],   &filter[1*5]);
-      tmp  += filter_one_line(&traveler[width*2], &filter[2*5]);
-      tmp  += filter_one_line(&traveler[width*3], &filter[3*5]);
-      tmp  += filter_one_line(&traveler[width*4], &filter[4*5]);
-      tmp2   = filter_one_line(&traveler[1], &filter[0*5]);
-      tmp2  += filter_one_line(&traveler[width+1], &filter[1*5]);
-      tmp2  += filter_one_line(&traveler[width*2+1], &filter[2*5]);
-      tmp2  += filter_one_line(&traveler[width*3+1], &filter[3*5]);
-      tmp2  += filter_one_line(&traveler[width*4+1], &filter[4*5]);
+      int32_t tmp;
+      tmp  = traveler[0] * filter[0];
+      tmp += traveler[1] * filter[1];
+      tmp += traveler[2] * filter[2];
+      tmp += traveler[3] * filter[3];
+      tmp += traveler[4] * filter[4];
+      tmp += traveler[0+width] * filter[5];
+      tmp += traveler[1+width] * filter[6];
+      tmp += traveler[2+width] * filter[7];
+      tmp += traveler[3+width] * filter[8];
+      tmp += traveler[4+width] * filter[9];
+      tmp += traveler[0+width*2] * filter[10];
+      tmp += traveler[1+width*2] * filter[11];
+      tmp += traveler[2+width*2] * filter[12];
+      tmp += traveler[3+width*2] * filter[13];
+      tmp += traveler[4+width*2] * filter[14];
+      tmp += traveler[0+width*3] * filter[15];
+      tmp += traveler[1+width*3] * filter[16];
+      tmp += traveler[2+width*3] * filter[17];
+      tmp += traveler[3+width*3] * filter[18];
+      tmp += traveler[4+width*3] * filter[19];
+      tmp += traveler[0+width*4] * filter[20];
+      tmp += traveler[1+width*4] * filter[21];
+      tmp += traveler[2+width*4] * filter[22];
+      tmp += traveler[3+width*4] * filter[23];
+      tmp += traveler[4+width*4] * filter[24];
 
       output_trav[0] = tmp;
-      output_trav[1] = tmp2;
 
-      output_trav += 2;
-      traveler += 2;
-      i+=2;
-    }while(i<width-5);
-
-    for(; i<width-5; ++i)
-    {
-      int32_t tmp = 0;
-      tmp   = filter_one_line(&traveler[0],         &filter[0*5]);
-      tmp  += filter_one_line(&traveler[width],   &filter[1*5]);
-      tmp  += filter_one_line(&traveler[width*2], &filter[2*5]);
-      tmp  += filter_one_line(&traveler[width*3], &filter[3*5]);
-      tmp  += filter_one_line(&traveler[width*4], &filter[4*5]);
-
-      output_trav[0] = tmp;
       output_trav++;
       traveler++;
     }
 
-    j++;
-    output_trav += 4;
-    traveler += 4;
-  }while(j < height-5);
+    output_trav += 5;
+    traveler += 5;
+  }
 }
 
 int main()
