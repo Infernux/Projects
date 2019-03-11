@@ -4,7 +4,9 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __NEON__
 #include "neon_impl.h"
+#endif /* __NEON__ */
 #include "utils.h"
 
 #define IMG_HEIGHT  1000
@@ -224,7 +226,7 @@ int main()
     printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
   }
 
-  //#ifdef __NEON__
+  #ifdef __NEON__
   clock_gettime(CLOCK_MONOTONIC, &start);
   applyFilterToImage_neon(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
   clock_gettime(CLOCK_MONOTONIC, &end);
@@ -236,5 +238,5 @@ int main()
   } else {
     printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
   }
-  //#endif /* __NEON__ */
+  #endif /* __NEON__ */
 }

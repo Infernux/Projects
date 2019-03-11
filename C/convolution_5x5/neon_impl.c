@@ -1,5 +1,6 @@
 #include "neon_impl.h"
 
+#ifdef __NEON__
 #include <arm_neon.h>
 #include <stdio.h>
 
@@ -24,10 +25,11 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
       int32x4_t neon_data_batch4 = vld1q_s32(&traveler[4]);
 
       int32x4_t neon_batch0 = vmulq_s32(neon_filt0, neon_data_batch0);
-      neon_batch0 = vmlaq_s32(neon_batch0, neon_filt1, neon_data_batch1);
-      neon_batch0 = vmlaq_s32(neon_batch0, neon_filt2, neon_data_batch2);
+      int32x4_t neon_batch1 = vmulq_s32(neon_filt1, neon_data_batch1);
       neon_batch0 = vmlaq_s32(neon_batch0, neon_filt3, neon_data_batch3);
+      neon_batch1 = vmlaq_s32(neon_batch1, neon_filt2, neon_data_batch2);
       neon_batch0 = vmlaq_s32(neon_batch0, neon_filt4, neon_data_batch4);
+      neon_batch0 = vaddq_s32(neon_batch0, neon_batch1);
 
       neon_filt0 = vdupq_n_s32(filter[5]);
       neon_filt1 = vdupq_n_s32(filter[6]);
@@ -151,3 +153,4 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
     traveler += 4;
   }
 }
+#endif /* __NEON__ */
