@@ -231,6 +231,7 @@ int main()
   }
 
   #ifdef __NEON__
+  memset(opt_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
   clock_gettime(CLOCK_MONOTONIC, &start);
   applyFilterToImage_neon(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
   clock_gettime(CLOCK_MONOTONIC, &end);
