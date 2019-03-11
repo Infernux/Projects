@@ -33,6 +33,9 @@ uint32_t verifyImages(int32_t *image_1, int32_t *image_2, uint32_t width, uint32
     {
       if(image_1[j*width + i] != image_2[j*width + i])
       {
+#ifdef PRINT_DIFF
+        printf("x:%d y:%d (%d instead of %d)\n", i, j, image_2[j*width + i], image_1[j*width + i]);
+#endif /* PRINT_DIFF */
         missmatches++;
       }
     }
