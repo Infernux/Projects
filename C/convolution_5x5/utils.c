@@ -27,9 +27,9 @@ uint32_t verifyImages(int32_t *image_1, int32_t *image_2, uint32_t width, uint32
 {
   uint32_t i,j;
   uint32_t missmatches = 0;
-  for(j=0; j<height-5; ++j)
+  for(j=0; j<height; ++j)
   {
-    for(i=0; i<width-5; ++i)
+    for(i=0; i<width; ++i)
     {
       if(image_1[j*width + i] != image_2[j*width + i])
       {
