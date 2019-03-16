@@ -10,17 +10,17 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
   int32_t *traveler = image;
   int32_t *output_trav = output;
 
+  int32x4_t neon_filt0 = vld1q_s32(&filter[0]);
+  int32x4_t neon_filt1 = vld1q_s32(&filter[5]);
+  int32x4_t neon_filt2 = vld1q_s32(&filter[10]);
+  int32x4_t neon_filt3 = vld1q_s32(&filter[15]);
+  int32x4_t neon_filt4 = vld1q_s32(&filter[20]);
+
   for(j=0; j<height-5; j++)
   {
     for(i=0; i<width-5; i++)
     {
-      int32x4_t neon_filt0 = vld1q_s32(&filter[0]);
-      int32x4_t neon_filt1 = vld1q_s32(&filter[5]);
-      int32x4_t neon_filt2 = vld1q_s32(&filter[10]);
-      int32x4_t neon_filt3 = vld1q_s32(&filter[15]);
-      int32x4_t neon_filt4 = vld1q_s32(&filter[20]);
       int32x4_t neon_data_batch0 = vld1q_s32(traveler);
-
       int32x4_t tmp1 = vmulq_s32(neon_filt0, neon_data_batch0);
       neon_data_batch0 = vld1q_s32(&traveler[width]);
       tmp1 = vmlaq_s32(tmp1, neon_filt1, neon_data_batch0);
