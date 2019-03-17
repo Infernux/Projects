@@ -42,7 +42,7 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
 
   for(j=0; j<height-5; j++)
   {
-    for(i=0; i<width-5 - BLOCK_SIZE + 1; i+=BLOCK_SIZE)
+    for(i=0; i<width-5 - BLOCK_SIZE; i+=BLOCK_SIZE)
     {
       int32_t tmp, tmp2, tmp3, tmp4;
       tmp   = traveler[0] * filter[0];
@@ -102,7 +102,7 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
       tmp3 += traveler[4+width*2] * filter[12];
       tmp3 += traveler[5+width*2] * filter[13];
       tmp3 += traveler[6+width*2] * filter[14];
-      tmp4 += traveler[4+width*2] * filter[10];
+      tmp4 += traveler[3+width*2] * filter[10];
       tmp4 += traveler[4+width*2] * filter[11];
       tmp4 += traveler[5+width*2] * filter[12];
       tmp4 += traveler[6+width*2] * filter[13];

@@ -1,24 +1,36 @@
 #include "utils.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 void setup5x5Filter(int32_t *filter)
 {
   uint32_t i;
+  srand(time(NULL));
   for(i=0; i<25; ++i)
   {
+#ifdef RANDOM_VALS
+    filter[i] = rand();
+#else
     filter[i] = i%5;
+#endif
   }
 }
 
 void setupImage(int32_t *img, uint32_t width, uint32_t height)
 {
   uint32_t i,j;
+  srand(time(NULL));
   for(j=0; j<height; ++j)
   {
     for(i=0; i<width; ++i)
     {
-      img[j*width + i] = j*width + i;
+#ifdef RANDOM_VALS
+      img[j*width + i] = rand();
+#else
+      img[j*width + i] = i + j*width;
+#endif
     }
   }
 }
@@ -52,5 +64,5 @@ void print_timediff(char *text, struct timespec *start, struct timespec *end)
     ns = 1e9 - ns;
   }
 
-  printf("%s : %ds %10ldns\n", text, s, ns);
+  printf("%s : %ds %10ldns (%ldus)\n", text, s, ns, (long)(ns / 10e3));
 }
