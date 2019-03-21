@@ -9,9 +9,6 @@
 #endif /* __NEON__ */
 #include "utils.h"
 
-#define IMG_HEIGHT  1000
-#define IMG_WIDTH   1000
-
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
   uint32_t i,j,k,l;
@@ -199,13 +196,15 @@ static void applyFilterToImage_opt(int32_t *filter, int32_t *image, int32_t *out
   }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+  int IMG_WIDTH = atoi(argv[1]);
+  int IMG_HEIGHT = atoi(argv[2]);
   printf("Convolution 5x5\n");
   int32_t filter5x5[5*5];
-  static int32_t img[IMG_WIDTH * IMG_HEIGHT];
-  static int32_t ref_output[IMG_WIDTH * IMG_HEIGHT];
-  static int32_t opt_output[IMG_WIDTH * IMG_HEIGHT];
+  int32_t *img = malloc(sizeof(int32_t) * IMG_WIDTH * IMG_HEIGHT);
+  int32_t *ref_output = malloc(sizeof(int32_t) * IMG_WIDTH * IMG_HEIGHT);
+  int32_t *opt_output = malloc(sizeof(int32_t) * IMG_WIDTH * IMG_HEIGHT);
 
   memset(ref_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
   memset(opt_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
@@ -247,4 +246,8 @@ int main()
     printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
   }
   #endif /* __NEON__ */
+
+  free(img);
+  free(ref_output);
+  free(opt_output);
 }
