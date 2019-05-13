@@ -67,7 +67,7 @@ void print_timediff(char *text, struct timespec *start, struct timespec *end)
   printf("%s : %ds %10ldns (%ldus)\n", text, s, ns, (long)(ns / 10e3));
 }
 
-#ifdef __NEON__
+#ifdef __ARM_NEON
 void print_vector(int32x4_t vector)
 {
   int32_t* tmp = ((int32_t*)&vector);
@@ -76,4 +76,4 @@ void print_vector(int32x4_t vector)
       tmp[2], tmp[3]
       );
 }
-#endif /* __NEON__ */
+#endif /* __ARM_NEON */

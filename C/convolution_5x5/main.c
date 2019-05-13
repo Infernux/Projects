@@ -4,9 +4,9 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef __NEON__
+#ifdef __ARM_NEON
 #include "neon_impl.h"
-#endif /* __NEON__ */
+#endif /* __ARM_NEON */
 #include "utils.h"
 
 static void applyFilterToImage_ref(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
     printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
   }
 
-  #ifdef __NEON__
+  #ifdef __ARM_NEON
   memset(opt_output, 0, sizeof(uint32_t) * IMG_WIDTH * IMG_HEIGHT);
   clock_gettime(CLOCK_MONOTONIC, &start);
   applyFilterToImage_neon(filter5x5, img, opt_output, IMG_WIDTH, IMG_HEIGHT);
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
   } else {
     printf("\e[38;5;46mMissmatched %d/%d\e[0m\n", missmatches, IMG_WIDTH*IMG_HEIGHT);
   }
-  #endif /* __NEON__ */
+  #endif /* __ARM_NEON */
 
   free(img);
   free(ref_output);

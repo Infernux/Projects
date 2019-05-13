@@ -9,9 +9,9 @@ void setupImage(int32_t *img, uint32_t width, uint32_t height);
 uint32_t verifyImages(int32_t *image_1, int32_t *image_2, uint32_t width, uint32_t height);
 void print_timediff(char *text, struct timespec *start, struct timespec *end);
 
-#ifdef __NEON__
+#ifdef __ARM_NEON
 #include <arm_neon.h>
 void print_vector(int32x4_t vector);
-#endif /* __NEON__ */
+#endif /* __ARM_NEON */
 
 #endif /* UTILS_H__ */

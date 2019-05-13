@@ -1,13 +1,14 @@
 #include "neon_impl.h"
 
-#ifdef __NEON__
+#ifdef __ARM_NEON
 #include <arm_neon.h>
 #include <stdio.h>
 
 void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, uint32_t width, uint32_t height)
 {
-  uint32_t i,j;
+  uint32_t j;
   int32_t *traveler = image;
+  int32_t *end;
   int32_t *output_trav = output;
 
   unsigned int BLOCK_SIZE = 2;
@@ -20,7 +21,7 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
 
   for(j=0; j<height-5; j++)
   {
-    for(i=0; i<width-5 - BLOCK_SIZE; i+=BLOCK_SIZE)
+    for(end = &traveler[width-5-BLOCK_SIZE]; traveler < end; traveler += BLOCK_SIZE, output_trav+=BLOCK_SIZE)
     {
       int32x4_t neon_data_batch0 = vld1q_s32(traveler);
       int32x4_t neon_data_batch1 = vld1q_s32(&traveler[1]);
@@ -61,11 +62,12 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
         traveler[5+width*4] * filter[24]
         ;
 
-      output_trav+=BLOCK_SIZE;
-      traveler+=BLOCK_SIZE;
+
     }
 
-    for(; i<width-5; i++)
+    end += BLOCK_SIZE;
+
+    for(; traveler<end; traveler++, output_trav++)
     {
       int32x4_t neon_data_batch0 = vld1q_s32(traveler);
       int32x4_t tmp1 = vmulq_s32(neon_filt0, neon_data_batch0);
@@ -86,13 +88,10 @@ void applyFilterToImage_neon(int32_t *filter, int32_t *image, int32_t *output, u
         traveler[4+width*3] * filter[19] +
         traveler[4+width*4] * filter[24]
         ;
-
-      output_trav++;
-      traveler++;
     }
 
     output_trav += 5;
     traveler += 5;
   }
 }
-#endif /* __NEON__ */
+#endif /* __ARM_NEON */

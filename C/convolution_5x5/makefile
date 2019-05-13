@@ -1,6 +1,6 @@
 #DEBUG=-DRANDOM_VALS
 #DEBUG+=-DPRINT_DIFF
-CFLAGS=-Wall -Werror -Wno-unused-command-line-argument -g -O0
+CFLAGS=-Wall -Werror -Wno-unused-command-line-argument -g -O2
 
 main: main.o utils.o neon_impl.o
 	$(CC) -o main main.o utils.o neon_impl.o
