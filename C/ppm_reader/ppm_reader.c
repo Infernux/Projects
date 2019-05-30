@@ -8,6 +8,7 @@
 
 #include "drawing_cairo.h"
 #include "utils.h"
+#include "file_readers.h"
 
 typedef struct win {
     Display *dpy;
@@ -21,7 +22,7 @@ typedef struct win {
 } win_t;
 
 static void
-win_draw(win_t *win, FILE *f, int width, int height)
+win_draw(win_t *win, ImageStruct *pst_image)
 {
   cairo_surface_t *surface;
   cairo_t *cr;
@@ -33,26 +34,20 @@ win_draw(win_t *win, FILE *f, int width, int height)
       win->width, win->height);
   cr = cairo_create(surface);
 
-  int x=0, y=0;
-
-  int16_t r, g, b;
-  while(1)
+  int x, y;
+  for(y=0; y<pst_image->height; ++y)
   {
-    r = read_int(f);
-    g = read_int(f);
-    b = read_int(f);
-
-    if(r==-1)
-      break;
-
-    cairo_set_source_rgb(cr, r/255., g/255., b/255.);
-    square(cr, x, y);
-    x=(++x)%width;
-    if(x==0)
+    for(x=0; x<pst_image->width; ++x)
     {
-      y++;
+      int r = pst_image->r[y * pst_image->pitch + x];
+      int g = pst_image->g[y * pst_image->pitch + x];
+      int b = pst_image->b[y * pst_image->pitch + x];
+
+      cairo_set_source_rgb(cr, r/255., g/255., b/255.);
+      square(cr, x, y);
     }
   }
+
 
   cairo_destroy(cr);
   cairo_surface_destroy (surface);
@@ -128,17 +123,8 @@ win_handle_events(win_t *win)
 
 int main(int argc, char **argv)
 {
-  //FILE *output = fopen("output.ppm", "w");
-  FILE *f = fopen(argv[1], "r");
 
-  char bufskip[50];
-  fgets(bufskip, 50, f);
-
-  int width = read_int(f);
-  int height = read_int(f);
-  int max = read_int(f);
-
-  printf("height : %d, width : %d\n", height, width);
+  ImageStruct *pst_image = readAsciiPpm(argv[1]);
 
   win_t win;
 
@@ -151,7 +137,7 @@ int main(int argc, char **argv)
 
   win_init(&win);
 
-  win_draw(&win, f, width, height);
+  win_draw(&win, pst_image);
 
   win_handle_events(&win);
 
@@ -159,7 +145,7 @@ int main(int argc, char **argv)
 
   XCloseDisplay(win.dpy);
 
-  fclose(f);
+  freeImageStruct(pst_image);
 
   return 0;
 }
