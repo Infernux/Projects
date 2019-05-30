@@ -6,37 +6,8 @@
 
 #include <inttypes.h>
 
-int read_int(FILE *f)
-{
-  char reader;
-  char buf[50];
-  int current_index = 0;
-
-  if(feof(f))
-    return -1;
-
-  while(fread(&reader, sizeof(char), 1, f))
-  {
-    if(current_index > 49)
-    {
-      return -1;
-    }
-
-    if(reader == ' ' || reader == '\n' || reader == '\r')
-    {
-      if(current_index != 0)
-      {
-        buf[current_index] = '\0';
-        break;
-      }
-    }
-
-    buf[current_index] = reader;
-    current_index++;
-  }
-
-  return atoi(buf);
-}
+#include "drawing_cairo.h"
+#include "utils.h"
 
 typedef struct win {
     Display *dpy;
@@ -48,21 +19,6 @@ typedef struct win {
     int width, height;
     KeyCode quit_code;
 } win_t;
-
-#define SIZE 1
-
-static void
-square(cairo_t *cr, const uint16_t x, const uint16_t y)
-{
-  uint16_t real_x = SIZE * x;
-  uint16_t real_y = SIZE * y;
-    cairo_move_to(cr, real_x, real_y);
-    cairo_rel_line_to(cr,  2*SIZE,   0);
-    cairo_rel_line_to(cr,   0,  2*SIZE);
-    cairo_rel_line_to(cr, -2*SIZE,   0);
-    cairo_close_path(cr);
-    cairo_stroke (cr);
-}
 
 static void
 win_draw(win_t *win, FILE *f, int width, int height)
@@ -170,10 +126,6 @@ win_handle_events(win_t *win)
     }
 }
 
-
-
-
-
 int main(int argc, char **argv)
 {
   //FILE *output = fopen("output.ppm", "w");
@@ -187,17 +139,6 @@ int main(int argc, char **argv)
   int max = read_int(f);
 
   printf("height : %d, width : %d\n", height, width);
-
-  /*fprintf(output, "P3\n%d %d\n255\n", width, height);
-  int i;
-  for(i=0; i<width * height; ++i)
-  {
-    unsigned char r = read_int(f);
-    unsigned char g = read_int(f);
-    unsigned char b = read_int(f);
-
-    fprintf(output, " %03d %03d %03d ", r, g, b);
-  }*/
 
   win_t win;
 
@@ -219,7 +160,6 @@ int main(int argc, char **argv)
   XCloseDisplay(win.dpy);
 
   fclose(f);
-  //fclose(output);
 
   return 0;
 }
