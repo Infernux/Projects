@@ -6,7 +6,6 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         renderer = new CustomOpenGLRenderer();
 
         oglsurface.setRenderer(renderer);
-        //oglsurface.setRenderMode(RENDERMODE_WHEN_DIRTY);
+        oglsurface.setRenderMode(RENDERMODE_WHEN_DIRTY);
 
         setContentView(oglsurface);
     }
@@ -55,11 +54,43 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String myShader = "" +
-"precision mediump float;" +
+"precision highp float;" +
 "\n#define mode 0\n" +
 "\n#define nbPoints 6\n" +
+"\n#define MARGIN 30. /* used when normalizing seeds positions */\n" +
 "uniform float " + TIME + ";" +
 "uniform vec2 "+ RESOLUTION + ";" +
+"void normalizeOnResolution(inout vec2 seeds[nbPoints])" +
+"{" +
+    "float max_x = 0.;" +
+    "float max_y = 0.;" +
+    "float x_factor = 0.;" +
+    "float y_factor = 0.;" +
+"" +
+    "for(int i=0; i<nbPoints; i++)" +
+    "{" +
+        "if(seeds[i].x > max_x)" +
+        "{" +
+            "max_x = seeds[i].x;" +
+        "}" +
+        "if(seeds[i].y > max_y)" +
+        "{" +
+            "max_y = seeds[i].y;" +
+        "}" +
+    "}" +
+"" +
+    "max_x += MARGIN;" +
+    "max_y += MARGIN;" +
+"" +
+    "x_factor = iResolution.x / max_x;" +
+    "y_factor = iResolution.y / max_y;" +
+"" +
+    "for(int i=0; i<nbPoints; i++)" +
+    "{" +
+        "seeds[i].x *= x_factor;" +
+        "seeds[i].y *= y_factor;" +
+    "}" +
+"}" +
 "void main()" +
 "{" +
     "vec2 position = gl_FragCoord.xy;" +
@@ -70,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
     "seeds[3]=vec2(42.0, 320.2);" +
     "seeds[4]=vec2(420.0, 160.2);" +
     "seeds[5]=vec2(300.0+sin(iTime)*50.0, 150.0+cos(iTime)*100.0);" +
-    "int closest=0;" +
+    "normalizeOnResolution(seeds);" +
+    "int closest=-1;" +
     "float closestV=1000.0;" +
     "for(int i=0; i<nbPoints; ++i){" +
         "float d1=pow(position.x-seeds[i].x,2.0);" +
@@ -128,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
             "precision mediump float;" +
 "uniform mat4 "+ MVP_MATRIX + ";" +
 "attribute vec4 " + POSITION +";" +
-"uniform vec2 "+ RESOLUTION + ";" +
 "uniform float "+ TIME + ";" +
 "varying vec2 position;" +
 "void main() {" +
@@ -154,17 +185,10 @@ public class MainActivity extends AppCompatActivity {
     private FloatBuffer positionBuffer = ByteBuffer.allocateDirect(POSITION_MATRIX.length * 4)
             .order(ByteOrder.nativeOrder()).asFloatBuffer().put(POSITION_MATRIX);
 
-
-
-    private static final float[] RESOLUTION_MATRIX = {
-            480, 1080
-    };
-
-    private FloatBuffer resolutionBuffer = ByteBuffer.allocateDirect(RESOLUTION_MATRIX.length * 4)
-            .order(ByteOrder.nativeOrder()).asFloatBuffer().put(RESOLUTION_MATRIX);
-
     private class CustomOpenGLRenderer implements GLSurfaceView.Renderer
     {
+        private float width, height;
+
         public int loadShader(int type, String shader)
         {
             int[] compiled = new int[1];
@@ -216,6 +240,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSurfaceChanged(GL10 gl10, int width, int height) {
             GLES32.glViewport(0, 0, width, height);
+            this.width = width;
+            this.height = height;
 
             float ratio = (float) width / height;
             Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
@@ -241,9 +267,7 @@ public class MainActivity extends AppCompatActivity {
             // We attach the float array containing our Matrix to the correct handle
             GLES32.glUniformMatrix4fv(uMVPMatrix, 1, false, mvpMatrix, 0);
 
-            resolutionBuffer.position(0);
-            GLES32.glVertexAttribPointer(iResolution, 2, GLES32.GL_FLOAT, false, 0, resolutionBuffer);
-            GLES32.glEnableVertexAttribArray(iResolution);
+            GLES32.glUniform2f(iResolution, width, height);
 
             positionBuffer.position(0);
             GLES32.glVertexAttribPointer(vPosition, 3, GLES32.GL_FLOAT, false, 0, positionBuffer);
@@ -254,10 +278,10 @@ public class MainActivity extends AppCompatActivity {
 
             GLES32.glDrawArrays(GLES32.GL_TRIANGLE_STRIP, 0, 4);
 
-            GLES32.glDisableVertexAttribArray(iResolution);
             GLES32.glDisableVertexAttribArray(vPosition);
             GLES32.glDisableVertexAttribArray(iTime);
 
+            oglsurface.requestRender();
         }
     }
 }
