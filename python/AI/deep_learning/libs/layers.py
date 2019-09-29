@@ -32,8 +32,7 @@ class RELU():
         pass
 
     def forward(self, x):
-        zeros = np.zeros_like(x)
-        self.out = np.maximum(zeros, x)
+        self.out = np.maximum(0, x)
         return self.out
 
     def backprop(self, dout):
