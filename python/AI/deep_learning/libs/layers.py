@@ -1,6 +1,6 @@
-import numpy as np
+#!/usr/bin/python3
 
-from functions import *
+import numpy as np
 
 class Sigmoid():
     def __init__(self):
@@ -14,7 +14,30 @@ class Sigmoid():
 
     def backprop(self, dout):
         res = self.out * (1 - self.out) * dout
-        return res 
+        return res
+
+class Step():
+    def __init__(self):
+        pass
+
+    def forward(self, x):
+        self.out = x > 0
+        return self.out
+
+    def backprop(self, dout):
+        return res
+
+class RELU():
+    def __init__(self):
+        pass
+
+    def forward(self, x):
+        zeros = np.zeros_like(x)
+        self.out = np.maximum(zeros, x)
+        return self.out
+
+    def backprop(self, dout):
+        return res
 
 class Affine():
     def __init__(self, weights, bias):
@@ -45,3 +68,12 @@ class SoftMax_loss():
         a[np.arange(self.soft.shape[0]), self.t] = 1
         out = self.soft - a
         return out
+
+import matplotlib.pyplot as plt
+
+x=np.arange(-5, 5, 0.1)
+s=RELU()
+y=s.forward(x)
+
+plt.plot(x, y)
+plt.show()
