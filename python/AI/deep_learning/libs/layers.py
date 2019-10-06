@@ -2,6 +2,30 @@
 
 import numpy as np
 
+def cross_entropy_loss(x, t):
+    if x.ndim == 1:
+        print("henlo")
+        pass
+
+    batch_size = x.shape[0]
+    x = x[np.arange(batch_size),t]
+    try:
+        log = np.log(x+1e-7)
+    except:
+        print(x)
+        print("except")
+    return -np.sum(log) / batch_size
+
+class Identity():
+    def __init__(self):
+        pass
+
+    def forward(self, x):
+        return x
+
+    def backward(self, dout):
+        return dout
+
 class Sigmoid():
     def __init__(self):
         pass
@@ -36,7 +60,8 @@ class RELU():
         return self.out
 
     def backprop(self, dout):
-        return res
+        dout[self.out <= 0] = 0
+        return dout
 
 class Affine():
     def __init__(self, weights, bias):
@@ -63,16 +88,37 @@ class SoftMax_loss():
         return cross_entropy_loss(self.soft, t)
 
     def backprop(self, dout):
-        a = np.zeros_like(self.soft)
-        a[np.arange(self.soft.shape[0]), self.t] = 1
-        out = self.soft - a
-        return out
+        batch_size = self.t.shape[0]
+        if self.t.size == self.soft.size:
+            dx = (self.soft - self.t) / batch_size
+        else:
+            dx = self.soft.copy()
+            dx[np.arange(batch_size), self.t] -= 1
+            dx = dx / batch_size
+        return dx
 
-import matplotlib.pyplot as plt
+def softmax(array):
+    array = array - np.max(array)
+    array = np.exp(array)
 
-x=np.arange(-5, 5, 0.1)
-s=RELU()
-y=s.forward(x)
+    ss = np.sum(array)
+    return array / ss
 
-plt.plot(x, y)
-plt.show()
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    functions = 0
+
+    if functions:
+        x=np.arange(-5, 5, 0.1)
+        s=RELU()
+        y=s.forward(x)
+
+        plt.plot(x, y)
+        plt.show()
+    else:
+        x = np.arange(0, 3, 1)
+        y = np.array([0, 0.4, 2])
+        y = softmax(y)
+        plt.bar(x, y)
+        plt.show()
