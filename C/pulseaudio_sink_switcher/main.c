@@ -43,7 +43,12 @@ void source_output_info_list_callback(pa_context *c, const pa_source_output_info
   PRINTF("source index %d\n", i->source);
 }
 
-void source_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
+void context_success_callback(pa_context *c, int success, void *userdata)
+{
+  PRINTF("%s\n", __func__);
+}
+
+void sink_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
 {
   PRINTF("%s\n", __func__);
   if(eol)
@@ -53,6 +58,11 @@ void source_input_info_list_callback(pa_context *c, const pa_sink_input_info *i,
 
   PRINTF("sink %d name : %s\n", i->index, i->name);
   PRINTF("sink index %d\n", i->sink);
+  pa_cvolume volume = i->volume;
+  PRINTF("volume ch : %d %f\n", volume.channels, pa_sw_volume_to_linear(volume.values[0]));
+
+  pa_cvolume *new_vol = pa_cvolume_dec(&volume, pa_sw_volume_from_linear(0.5));
+  pa_context_set_sink_input_volume(c, i->index, new_vol, context_success_callback, userdata);
 }
 
 void connection_callback(pa_context *c, void *userdata)
@@ -73,7 +83,7 @@ void connection_callback(pa_context *c, void *userdata)
       PRINTF("Ready\n");
       pa_operation *state = pa_context_get_sink_info_list(c, sink_info_list_callback, userdata);
       state = pa_context_get_source_info_list(c, source_info_list_callback, userdata);
-      state = pa_context_get_sink_input_info_list(c, source_input_info_list_callback, userdata);
+      state = pa_context_get_sink_input_info_list(c, sink_input_info_list_callback, userdata);
       state = pa_context_get_source_output_info_list(c, source_output_info_list_callback, userdata);
       break;
     case PA_CONTEXT_TERMINATED:
