@@ -17,7 +17,42 @@ void sink_info_list_callback(pa_context *c, const pa_sink_info *i, int eol, void
   }
 
   PRINTF("sink %d name : %s\n", i->index, i->name);
-  PRINTF("num ports %d\n", i->n_ports);
+}
+
+void source_info_list_callback(pa_context *c, const pa_source_info *i, int eol, void *userdata)
+{
+  PRINTF("%s\n", __func__);
+  if(eol)
+  {
+    return;
+  }
+
+  PRINTF("sink %d name : %s\n", i->index, i->name);
+  PRINTF("card index %d\n", i->card);
+}
+
+void source_output_info_list_callback(pa_context *c, const pa_source_output_info *i, int eol, void *userdata)
+{
+  PRINTF("%s\n", __func__);
+  if(eol)
+  {
+    return;
+  }
+
+  PRINTF("sink %d name : %s\n", i->index, i->name);
+  PRINTF("source index %d\n", i->source);
+}
+
+void source_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
+{
+  PRINTF("%s\n", __func__);
+  if(eol)
+  {
+    return;
+  }
+
+  PRINTF("sink %d name : %s\n", i->index, i->name);
+  PRINTF("sink index %d\n", i->sink);
 }
 
 void connection_callback(pa_context *c, void *userdata)
@@ -36,7 +71,10 @@ void connection_callback(pa_context *c, void *userdata)
       break;
     case PA_CONTEXT_READY:
       PRINTF("Ready\n");
-      pa_operation *state = pa_context_get_sink_info_list(c, sink_info_list_callback, userdata); /* should be spawned by the connection state callback */
+      pa_operation *state = pa_context_get_sink_info_list(c, sink_info_list_callback, userdata);
+      state = pa_context_get_source_info_list(c, source_info_list_callback, userdata);
+      state = pa_context_get_sink_input_info_list(c, source_input_info_list_callback, userdata);
+      state = pa_context_get_source_output_info_list(c, source_output_info_list_callback, userdata);
       break;
     case PA_CONTEXT_TERMINATED:
       PRINTF("Terminated\n");
