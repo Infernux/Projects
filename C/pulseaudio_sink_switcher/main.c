@@ -2,31 +2,47 @@
 #include <stdlib.h>
 
 #include <pulse/context.h>
-#include <pulse/mainloop.h>
 #include <pulse/error.h>
+#include <pulse/introspect.h>
+#include <pulse/mainloop.h>
+
+#define PRINTF(format, ...) printf(format, ##__VA_ARGS__)
+
+void sink_info_list_callback(pa_context *c, const pa_sink_info *i, int eol, void *userdata)
+{
+  PRINTF("%s\n", __func__);
+  if(eol)
+  {
+    return;
+  }
+
+  PRINTF("sink %d name : %s\n", i->index, i->name);
+  PRINTF("num ports %d\n", i->n_ports);
+}
 
 void connection_callback(pa_context *c, void *userdata)
 {
   pa_context_state_t state = pa_context_get_state(c);
 
-  printf("%s\n", __func__);
+  PRINTF("%s\n", __func__);
 
   switch(state)
   {
     case PA_CONTEXT_UNCONNECTED:
-      printf("Unconnected\n");
+      PRINTF("Unconnected\n");
       break;
     case PA_CONTEXT_CONNECTING:
-      printf("Connecting\n");
+      PRINTF("Connecting\n");
       break;
     case PA_CONTEXT_READY:
-      printf("Ready\n");
+      PRINTF("Ready\n");
+      pa_operation *state = pa_context_get_sink_info_list(c, sink_info_list_callback, userdata); /* should be spawned by the connection state callback */
       break;
     case PA_CONTEXT_TERMINATED:
-      printf("Terminated\n");
+      PRINTF("Terminated\n");
       break;
     default:
-      printf("Unimplemented\n");
+      PRINTF("Unimplemented\n");
       break;
   }
 }
@@ -38,7 +54,7 @@ void connection_callback(pa_context *c, void *userdata)
 //pa_context_set_state_callback() <--
 int main()
 {
-  printf("henlo\n");
+  PRINTF("henlo\n");
 
   pa_mainloop *mainloop = pa_mainloop_new();
   char *servername = NULL;
@@ -49,9 +65,17 @@ int main()
   pa_proplist_free(proplist);
 
   const pa_spawn_api *spawn_api = NULL; /* parameters on how to spawn a thread */
-  void *userdata = NULL;
-  pa_context_set_state_callback(context, connection_callback, userdata);
-  int error = pa_context_connect(context, servername, PA_CONTEXT_NOAUTOSPAWN, spawn_api);
 
+  enum pa_context_state state = PA_CONTEXT_CONNECTING;
+  pa_context_set_state_callback(context, connection_callback, &state);
+
+  /* connect */
+  int error = pa_context_connect(context, servername, PA_CONTEXT_NOAUTOSPAWN, spawn_api);
+  while(state != PA_CONTEXT_READY && state != PA_CONTEXT_FAILED)
+  {
+    pa_mainloop_iterate(mainloop, 1, NULL);
+  }
+
+  /* disconnect */
   pa_context_disconnect(context);
 }
