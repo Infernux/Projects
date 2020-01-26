@@ -5,6 +5,9 @@ from enum import Enum
 
 known_types = dict()
 known_types["uint32_t"] = "%d"
+known_types["uint8_t"] = "%d"
+known_types["int"] = "%d"
+known_types["char"] = "%c"
 
 class parse_status(Enum):
     START = 1
@@ -79,53 +82,43 @@ def extract_body(filehandle, first_line):
 
     return header, body, aliases
 
+def remove_comments_from_body(body):
+    processed_body = ""
+    reprocessed_body = ""
+    #single line comments
+    for l in body.split("\n"):
+        comment_index = l.find("//")
+        if comment_index != -1:
+            processed_body += l[:comment_index - 1]
+            continue
+
+        processed_body += l
+
+    comment_index_start = processed_body.find("/*", 0)
+    current_index = 0
+    while comment_index_start != -1:
+        comment_index_end = processed_body.find("*/", comment_index_start)
+        reprocessed_body += processed_body[current_index:comment_index_start]
+        current_index = comment_index_end + len("*/")
+        comment_index_start = processed_body.find("/*", comment_index_end)
+
+    reprocessed_body += processed_body[current_index:]
+
+    return reprocessed_body
+
 def parse_body(body):
     level = 0
     started = False
 
+    body = remove_comments_from_body(body)
+    print("after body")
+    print(body)
+    print("---  --")
+
     current_variable = ""
 
-    #search for typedef to {
-    td_idx = body.index("typedef")
-    typedef_end_idx = body.index("{")
-
-    struct_name = body[td_idx:typedef_end_idx]
-    print(struct_name)
-
-    return
-
-    for l in body.split("\n"):
-        try:
-            index = l.index("{")
-            started = True
-            level += 1 #no need to test, index raises an exception if not found
-            if index != len(l) :
-                #parse rest
-                pass
-            continue
-        except:
-            pass
-
-        try:
-            index = l.index("}")
-            level -= 1
-            continue
-        except:
-            pass
-
-        try:
-            index = l.index(";")
-            current_variable += l[:index]
-            print(current_variable)
-            current_variable = ""
-            continue
-        except:
-            pass
-
-        if level == 0 and started == True:
-            return
-
-        current_variable += l
+    for l in body.split(";"):
+        print(l)
 
     #find first {
     #parse till first ;
@@ -137,14 +130,15 @@ def parse_file(filename, re_struct):
         for l in f:
             if re_struct.match(l):
                 header, body, aliases = extract_body(f, l)
-                print("--- header ---")
-                print(header)
+                #print("--- header ---")
+                #print(header)
                 print("--- body ---")
                 print(body)
-                print("--- aliases ---")
-                print(aliases)
+                #print("--- aliases ---")
+                #print(aliases)
                 print("---")
-                #parse_body(body)
+                parse_body(body)
+                print("---")
 
 if len(sys.argv) != 3:
     print("Not enough arguments")
