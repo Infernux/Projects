@@ -111,18 +111,39 @@ def parse_body(body):
     started = False
 
     body = remove_comments_from_body(body)
-    print("after body")
-    print(body)
-    print("---  --")
+    #print("after body")
+    #print(body)
+    #print("---  --")
 
     current_variable = ""
 
     for l in body.split(";"):
-        print(l)
+        array_size = -1
+        tokens = l.split()
+        if len(tokens) != 0:
+            variable_type = tokens[0].strip()
+            if variable_type in known_types.keys():
+                variable_name = tokens[1].strip()
+                #look for an array
+                array_start = variable_name.find("[")
+                if array_start != -1:
+                    array_end = variable_name.find("]", array_start)
+                    array_size = variable_name[array_start+len("["):array_end]
+                    variable_name = variable_name[:array_start]
+                    #print("array size : "+str(array_size))
 
-    #find first {
-    #parse till first ;
-    #do, until last }
+                #print("found known type:", token)
+                if variable_type == "char" and array_size != -1:
+                    print_method = "%s"
+                    print('printf("'+variable_name+':'+print_method+'\\n", '+variable_name+');')
+                else:
+                    print_method = known_types[variable_type]
+                    if array_size != -1:
+                        print('for(U4 var_index = 0; var_index < '+str(array_size) + '; ++var_index) {')
+                        print('\tprintf("'+variable_name+'[%d]:'+print_method+'\\n", var_index, '+variable_name+');')
+                        print('}')
+                    else:
+                        print('printf("'+variable_name+':'+print_method+'\\n", '+variable_name+');')
 
 def parse_file(filename, re_struct):
     status = parse_status.START
@@ -132,13 +153,13 @@ def parse_file(filename, re_struct):
                 header, body, aliases = extract_body(f, l)
                 #print("--- header ---")
                 #print(header)
-                print("--- body ---")
-                print(body)
+                #print("--- body ---")
+                #print(body)
                 #print("--- aliases ---")
                 #print(aliases)
-                print("---")
+                #print("---")
                 parse_body(body)
-                print("---")
+                #print("---")
 
 if len(sys.argv) != 3:
     print("Not enough arguments")
