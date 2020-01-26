@@ -135,15 +135,15 @@ def parse_body(body):
                 #print("found known type:", token)
                 if variable_type == "char" and array_size != -1:
                     print_method = "%s"
-                    print('printf("'+variable_name+':'+print_method+'\\n", '+variable_name+');')
+                    print('printf("'+variable_name+'('+variable_type+'):'+print_method+'\\n", pointer->'+variable_name+');')
                 else:
                     print_method = known_types[variable_type]
                     if array_size != -1:
                         print('for(U4 var_index = 0; var_index < '+str(array_size) + '; ++var_index) {')
-                        print('\tprintf("'+variable_name+'[%d]:'+print_method+'\\n", var_index, '+variable_name+');')
+                        print('\tprintf("'+variable_name+'[%d]'+'('+variable_type+'):'+print_method+'\\n", var_index, pointer->'+variable_name+'[var_index]);')
                         print('}')
                     else:
-                        print('printf("'+variable_name+':'+print_method+'\\n", '+variable_name+');')
+                        print('printf("'+variable_name+'('+variable_type+'):'+print_method+'\\n", pointer->'+variable_name+');')
 
 def parse_file(filename, re_struct):
     status = parse_status.START
