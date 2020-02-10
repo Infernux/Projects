@@ -3,6 +3,64 @@
 import unittest
 
 from StructureDumper import extract_name_body_aliases
+from StructureDumper import remove_comments_from_line
+
+class TestCommentsRemover(unittest.TestCase):
+    def test_remove_starting_single_liner(self):
+        line = "//a"
+        is_multiline_comment = False
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "")
+
+    def test_remove_middle_single_liner(self):
+        line = "int a;//a"
+        is_multiline_comment = False
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "int a;")
+
+    def test_remove_middle_single_liner_while_in_multiliner(self):
+        line = "int a;//a"
+        is_multiline_comment = True
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "")
+
+    def test_remove_starting_multiliner(self):
+        line = "/* b */int a;"
+        is_multiline_comment = False
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "int a;")
+
+    def test_remove_middle_multiliner(self):
+        line = "int /* b */a;"
+        is_multiline_comment = False
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "int a;")
+
+    def test_remove_middle_multiliner(self):
+        line = "int /* b */a;"
+        is_multiline_comment = False
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "int a;")
+
+    def test_remove_end_multiliner(self):
+        line = "int /* b */a;"
+        is_multiline_comment = True
+
+        line = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "a;")
 
 class TestExtraction(unittest.TestCase):
 
@@ -155,5 +213,7 @@ class TestExtraction(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestExtraction)
+    suite2 = unittest.TestLoader().loadTestsFromTestCase(TestCommentsRemover)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=2).run(suite2)
     unittest.main()

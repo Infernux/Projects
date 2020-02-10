@@ -7,10 +7,53 @@ from collections import deque
 
 from mytypes import known_types
 
+class parse_state(Enum):
+    INIT = 0 #looking for typedef
+    TYPEDEF = 1 # looking for struct
+    STRUCT = 2 #looking for name
+    NAME = 3 #looking for {
+    START = 4 #looking for }
+    END = 5 #looking for the final ;
+
+def remove_comments_from_line(string, is_multiline_comment):
+    if is_multiline_comment == True:
+        index = string.find("*/")
+        if index != -1:
+            string = string[index + len("*/"):]
+            string = remove_comments_from_line(string, False)
+        else:
+            string = ""
+    else:
+        index_single = string.find("//")
+        index_multi = string.find("/*")
+
+        if index_single != -1 and index_multi != -1:
+            if index_single < index_multi:
+                string = string[:index_single]
+            else:
+                new_buf = string[:index_multi]
+                new_buf += remove_comments_from_line(string[index_multi+len("/*"):], True)
+                string = new_buf
+        elif index_single != -1:
+            string = string[:index_single]
+        elif index_multi != -1:
+            new_buf = string[:index_multi]
+            new_buf += remove_comments_from_line(string[index_multi+len("/*"):], True)
+            string = new_buf
+
+    return string
+
 def extract_name_body_aliases(string):
     name = ""
     body = ""
     aliases = list()
+
+    status = parse_state.INIT
+
+    for l in string.split("\n"):
+        l = remove_comments_from_line(l)
+        pass
+
     return name, body, aliases
 
 class parse_status(Enum):
