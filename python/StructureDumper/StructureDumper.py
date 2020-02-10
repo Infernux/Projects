@@ -3,11 +3,15 @@ import os, sys
 import re
 from enum import Enum
 
-known_types = dict()
-known_types["uint32_t"] = "%d"
-known_types["uint8_t"] = "%d"
-known_types["int"] = "%d"
-known_types["char"] = "%c"
+from collections import deque
+
+from mytypes import known_types
+
+def extract_name_body_aliases(string):
+    name = ""
+    body = ""
+    aliases = list()
+    return name, body, aliases
 
 class parse_status(Enum):
     START = 1
@@ -106,9 +110,44 @@ def remove_comments_from_body(body):
 
     return reprocessed_body
 
+#TODO: add support for several guards (&& or ||)
+#TODO: add support for else
+def find_and_extract_guards(line, guards):
+    if line.strip().find('#') != 0:
+        return line, guards
+
+    print("=== guards start ===")
+    print(line)
+    guard_index = line.find("#ifdef ")
+    if guard_index != -1:
+        guard = line[guard_index + len("#ifdef "):]
+        guards.append(guard)
+        print(guards)
+
+    guard_index = line.find("#ifndef ")
+    if guard_index != -1:
+        guard = line[guard_index + len("#ifndef "):]
+        guards.append(guard)
+        print(guards)
+
+    guard_index = line.find("defined(")
+    if guard_index != -1:
+        guard = line[guard_index + len("defined("):]
+        guards.append(guard)
+        print(guards)
+
+    line_split = line.split('\n')
+    print(len(line_split))
+
+    print("=== guards ===")
+
+    return line, guards
+
 def parse_body(body):
     level = 0
     started = False
+
+    define_queue = deque()
 
     body = remove_comments_from_body(body)
     #print("after body")
@@ -119,6 +158,12 @@ def parse_body(body):
 
     for l in body.split(";"):
         array_size = -1
+        # look for defines
+        l, guards = find_and_extract_guards(l, define_queue)
+
+        if len(define_queue) != 0 and l.find("#endif") != -1:
+            define_queue.pop()
+
         tokens = l.split()
         if len(tokens) != 0:
             variable_type = tokens[0].strip()
@@ -151,21 +196,22 @@ def parse_file(filename, re_struct):
         for l in f:
             if re_struct.match(l):
                 header, body, aliases = extract_body(f, l)
-                #print("--- header ---")
-                #print(header)
-                #print("--- body ---")
-                #print(body)
-                #print("--- aliases ---")
-                #print(aliases)
-                #print("---")
+                print("--- header ---")
+                print(header)
+                print("--- body ---")
+                print(body)
+                print("--- aliases ---")
+                print(aliases)
+                print("---")
                 parse_body(body)
-                #print("---")
+                print("---")
 
-if len(sys.argv) != 3:
-    print("Not enough arguments")
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print("Not enough arguments")
 
-filename=sys.argv[1]
-structname=sys.argv[2]
+    filename=sys.argv[1]
+    structname=sys.argv[2]
 
-re_struct = generate_struct_regex()
-parse_file(filename, re_struct)
+    re_struct = generate_struct_regex()
+    parse_file(filename, re_struct)
