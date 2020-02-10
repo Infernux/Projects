@@ -46,15 +46,15 @@ class TestCommentsRemover(unittest.TestCase):
 
         self.assertEqual(line, "int a;")
 
-    def test_remove_middle_multiliner(self):
-        line = "int /* b */a;"
+    def test_remove_ending_multiliner(self):
+        line = "int a;/* adfj */"
         is_multiline_comment = False
 
         line = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "int a;")
 
-    def test_remove_end_multiliner(self):
+    def test_remove_multiliner_while_in_multiline_mode(self):
         line = "int /* b */a;"
         is_multiline_comment = True
 
