@@ -7,6 +7,8 @@ from collections import deque
 
 from mytypes import known_types
 
+MAX_ITER_COUNT = 100
+
 class parse_state(Enum):
     INIT = 0 #looking for typedef
     TYPEDEF = 1 # looking for struct
@@ -14,6 +16,7 @@ class parse_state(Enum):
     NAME = 3 #looking for {
     START = 4 #looking for }
     END = 5 #looking for the final ;
+    DONE = 6
 
 def remove_comments_from_line(string, is_multiline_comment):
     if is_multiline_comment == True:
@@ -48,11 +51,142 @@ def extract_name_body_aliases(string):
 
     status = parse_state.INIT
     comment_status = False
+    depth = 0
+
+    iteration_count = 0
 
     for l in string.split("\n"):
         l, comment_status = remove_comments_from_line(l, comment_status)
 
-    return name, body, aliases
+        if iteration_count >= 10:
+            print("we fucked up my dear")
+            print(status)
+
+        iteration_count = 0
+
+        while len(l) != 0 and iteration_count < MAX_ITER_COUNT:
+            l = l.lstrip()
+            iteration_count += 1
+            if status == parse_state.INIT:
+                needed_token = "typedef"
+                index = l.find(needed_token)
+                if index != -1:
+                    status = parse_state.TYPEDEF
+                    l = l[index + len(needed_token):]
+            elif status == parse_state.TYPEDEF:
+                needed_token = "struct"
+                index = l.find(needed_token)
+                if index != -1:
+                    status = parse_state.STRUCT
+                    l = l[index + len(needed_token):]
+            elif status == parse_state.STRUCT:
+                needed_token = "{"
+                index = l.find(needed_token)
+                if index != -1:
+                    name = l[:index].strip()
+                    l = l[index-1:]
+                    status = parse_state.NAME
+                    continue
+
+                needed_token = " "
+                index = l.find(needed_token)
+
+                if index != -1:
+                    name = l[:index].strip()
+                    l = l[index + len(needed_token):]
+                else:
+                    name = l.strip()
+                    l = ""
+                status = parse_state.NAME
+            elif status == parse_state.NAME:
+                needed_token = "{"
+                index = l.find(needed_token)
+                if index != -1:
+                    status = parse_state.START
+                    depth+=1
+                    l = l[index + len(needed_token):]
+                else:
+                    break #out the while loop
+            elif status == parse_state.START:
+                needed_token_start = "{"
+                needed_token_end = "}"
+                index_start = l.find(needed_token_start)
+                index_end = l.find(needed_token_end)
+
+                if index_start != -1 and index_end != -1:
+                    if index_start < index_end:
+                        depth+=1
+                        body += l[:index_start].strip()
+                        l = l[index_start + len(needed_token_start):]
+                    else:
+                        body += l[:index_end].strip()
+                        l = l[index_end + len(needed_token_end):]
+                        depth-=1
+                elif index_start != -1:
+                    depth+=1
+                    body += l[:index_start].strip()
+                    l = l[index_start + len(needed_token_start):]
+                elif index_end != -1:
+                    depth-=1
+                    body += l[:index_end].strip()
+                    l = l[index_end + len(needed_token_end):]
+                else:
+                    body += l.strip()
+                    l = ""
+
+                if depth == 0:
+                    status = parse_state.END
+                else:
+                    body += " " #as \n acts as a separator, we need to replace it with something similar
+            elif status == parse_state.END:
+                needed_token_separator = ","
+                needed_token_final = ";"
+
+                index_separator = l.find(needed_token_separator)
+                index_final = l.find(needed_token_final)
+
+                if index_separator != -1 and index_final != -1:
+                    if index_separator < index_final:
+                        alias = l[:index_separator]
+                        alias = alias.strip()
+                        if len(alias) != 0:
+                            aliases.append(alias)
+                        l = l[index_separator + len(needed_token_separator):]
+                    else:
+                        alias = l[:index_final]
+                        alias = alias.strip()
+                        if len(alias) != 0:
+                            aliases.append(alias)
+                        l = l[index_final + len(needed_token_final):]
+                        status = parse_state.DONE
+                        break #TODO?: make it compatible with several typedef on the same line... is that even a thing ?
+                elif index_separator != -1:
+                    alias = l[:index_separator]
+                    alias = alias.strip()
+                    if len(alias) != 0:
+                        aliases.append(alias)
+                    l = l[index_separator + len(needed_token_separator):]
+                elif index_final != -1:
+                    alias = l[:index_final]
+                    alias = alias.strip()
+                    if len(alias) != 0:
+                        aliases.append(alias)
+                    l = l[index_final + len(needed_token_final):]
+                    status = parse_state.DONE
+                    break #TODO?: make it compatible with several typedef on the same line... is that even a thing ?
+                else:
+                    alias = l.strip()
+                    aliases.append(alias)
+                    break
+
+    body = re.sub(' +', ' ', body)
+
+    return name, body.strip(), aliases
+
+
+
+
+
 
 class parse_status(Enum):
     START = 1

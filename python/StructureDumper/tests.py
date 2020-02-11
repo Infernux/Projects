@@ -97,6 +97,21 @@ class TestExtraction(unittest.TestCase):
         self.assertEqual(body, expected_body)
         self.assertEqual(aliases, expected_aliases)
 
+    def test_basic_struct_no_space(self):
+        body = '''
+            typedef struct my_struct{int x;
+            int a;};
+        '''
+        expected_name = 'my_struct'
+        expected_aliases = list()
+        expected_body = 'int x; int a;'
+
+        name, body, aliases = extract_name_body_aliases(body)
+
+        self.assertEqual(name, expected_name)
+        self.assertEqual(body, expected_body)
+        self.assertEqual(aliases, expected_aliases)
+
     def test_basic_struct_with_single_alias(self):
         body = '''
             typedef struct my_struct
@@ -196,11 +211,13 @@ class TestExtraction(unittest.TestCase):
         b;
         }
         with_alias/*,
-        **/alias2;
+        **/,alias2
+        ;
         '''
         expected_name = 'my_struct'
         expected_aliases = list()
-        expected_aliases.append("with_aliasalias2")
+        expected_aliases.append("with_alias")
+        expected_aliases.append("alias2")
         expected_body = 'int b;'
 
         name, body, aliases = extract_name_body_aliases(body)
