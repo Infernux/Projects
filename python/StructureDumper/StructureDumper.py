@@ -20,7 +20,7 @@ def remove_comments_from_line(string, is_multiline_comment):
         index = string.find("*/")
         if index != -1:
             string = string[index + len("*/"):]
-            string = remove_comments_from_line(string, False)
+            string, is_multiline_comment = remove_comments_from_line(string, False)
         else:
             string = ""
     else:
@@ -31,17 +31,15 @@ def remove_comments_from_line(string, is_multiline_comment):
             if index_single < index_multi:
                 string = string[:index_single]
             else:
-                new_buf = string[:index_multi]
-                new_buf += remove_comments_from_line(string[index_multi+len("/*"):], True)
-                string = new_buf
+                new_buf, is_multiline_comment = remove_comments_from_line(string[index_multi+len("/*"):], True)
+                string = string[:index_multi] + new_buf
         elif index_single != -1:
             string = string[:index_single]
         elif index_multi != -1:
-            new_buf = string[:index_multi]
-            new_buf += remove_comments_from_line(string[index_multi+len("/*"):], True)
-            string = new_buf
+            new_buf, is_multiline_comment = remove_comments_from_line(string[index_multi+len("/*"):], True)
+            string = string[:index_multi] + new_buf
 
-    return string
+    return string, is_multiline_comment
 
 def extract_name_body_aliases(string):
     name = ""
@@ -49,10 +47,10 @@ def extract_name_body_aliases(string):
     aliases = list()
 
     status = parse_state.INIT
+    comment_status = False
 
     for l in string.split("\n"):
-        l = remove_comments_from_line(l)
-        pass
+        l, comment_status = remove_comments_from_line(l, comment_status)
 
     return name, body, aliases
 

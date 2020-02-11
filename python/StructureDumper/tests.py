@@ -10,57 +10,73 @@ class TestCommentsRemover(unittest.TestCase):
         line = "//a"
         is_multiline_comment = False
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "")
+        self.assertEqual(is_multiline_comment, False)
 
     def test_remove_middle_single_liner(self):
         line = "int a;//a"
         is_multiline_comment = False
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "int a;")
+        self.assertEqual(is_multiline_comment, False)
 
     def test_remove_middle_single_liner_while_in_multiliner(self):
         line = "int a;//a"
         is_multiline_comment = True
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "")
+        self.assertEqual(is_multiline_comment, True)
 
     def test_remove_starting_multiliner(self):
         line = "/* b */int a;"
         is_multiline_comment = False
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "int a;")
+        self.assertEqual(is_multiline_comment, False)
 
     def test_remove_middle_multiliner(self):
         line = "int /* b */a;"
         is_multiline_comment = False
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "int a;")
+        self.assertEqual(is_multiline_comment, False)
 
     def test_remove_ending_multiliner(self):
         line = "int a;/* adfj */"
         is_multiline_comment = False
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "int a;")
+        self.assertEqual(is_multiline_comment, False)
 
     def test_remove_multiliner_while_in_multiline_mode(self):
         line = "int /* b */a;"
         is_multiline_comment = True
 
-        line = remove_comments_from_line(line, is_multiline_comment)
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
 
         self.assertEqual(line, "a;")
+        self.assertEqual(is_multiline_comment, False)
+
+    def test_remove_new_multiliner(self):
+        line = "int /* b a;"
+        is_multiline_comment = False
+
+        line, is_multiline_comment = remove_comments_from_line(line, is_multiline_comment)
+
+        self.assertEqual(line, "int ")
+        self.assertEqual(is_multiline_comment, True)
 
 class TestExtraction(unittest.TestCase):
 
