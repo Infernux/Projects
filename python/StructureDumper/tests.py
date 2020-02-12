@@ -104,7 +104,7 @@ class TestExtraction(unittest.TestCase):
         '''
         expected_name = 'my_struct'
         expected_aliases = list()
-        expected_body = 'int x; int a;'
+        expected_body = 'int x;\nint a;'
 
         name, body, aliases = extract_name_body_aliases(body)
 
@@ -218,7 +218,7 @@ class TestExtraction(unittest.TestCase):
         expected_aliases = list()
         expected_aliases.append("with_alias")
         expected_aliases.append("alias2")
-        expected_body = 'int b;'
+        expected_body = 'int\n\nb;'
 
         name, body, aliases = extract_name_body_aliases(body)
 

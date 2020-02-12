@@ -137,7 +137,7 @@ def extract_name_body_aliases(string):
                 if depth == 0:
                     status = parse_state.END
                 else:
-                    body += " " #as \n acts as a separator, we need to replace it with something similar
+                    body += "\n"
             elif status == parse_state.END:
                 needed_token_separator = ","
                 needed_token_final = ";"
