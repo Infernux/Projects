@@ -4,6 +4,8 @@ import unittest
 
 from StructureDumper import extract_name_body_aliases
 from StructureDumper import remove_comments_from_line
+from StructureDumper import IR_node
+from StructureDumper import extract_IR_from_body
 
 class TestCommentsRemover(unittest.TestCase):
     def test_remove_starting_single_liner(self):
@@ -244,9 +246,123 @@ class TestExtraction(unittest.TestCase):
         self.assertEqual(body, expected_body)
         self.assertEqual(aliases, expected_aliases)
 
+def compareIRs(ir1, ir2):
+    for ir1_node, ir2_node in zip(ir1, ir2):
+        if ir1_node.type != ir2_node.type:
+            print(str(ir1_node.type)+" != "+str(ir2_node.type))
+            return False
+        elif ir1_node.varname != ir2_node.varname:
+            print(str(ir1_node.varname)+" != "+str(ir2_node.varname))
+            return False
+        elif ir1_node.pointer != ir2_node.pointer:
+            print(str(ir1_node.pointer)+" != "+str(ir2_node.pointer))
+            return False
+        elif ir1_node.array != ir2_node.array:
+            print(str(ir1_node.array)+" != "+str(ir2_node.array))
+            return False
+
+    return True
+
+class TestBodyParsing(unittest.TestCase):
+    def test_one_known_variable(self):
+        body = '''
+        int a;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 0)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_two_known_variables(self):
+        body = '''
+        int a;
+        int b;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 0)
+        expected_ir.append(node)
+        node = IR_node("int", "b", 0)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_two_known_variables_one_liner(self):
+        body = '''
+        int a;int b;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 0)
+        expected_ir.append(node)
+        node = IR_node("int", "b", 0)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_pointer_1(self):
+        body = '''
+        int* a;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 1)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_pointer_2(self):
+        body = '''
+        int * a;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 1)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_pointer_2_space(self):
+        body = '''
+        int * * a;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 2)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_pointer_3(self):
+        body = '''
+        int *a;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 1)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestExtraction)
-    suite2 = unittest.TestLoader().loadTestsFromTestCase(TestCommentsRemover)
+    #suite2 = unittest.TestLoader().loadTestsFromTestCase(TestCommentsRemover)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    unittest.TextTestRunner(verbosity=2).run(suite2)
+    #unittest.TextTestRunner(verbosity=2).run(suite2)
     unittest.main()

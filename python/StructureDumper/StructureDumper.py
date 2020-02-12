@@ -9,6 +9,13 @@ from mytypes import known_types
 
 MAX_ITER_COUNT = 100
 
+class IR_node():
+    def __init__(self, vartype = None, varname = None, pointer = 0, array = list()):
+        self.type = vartype
+        self.varname = varname
+        self.pointer = 0 #* count
+        self.array = array #number/const per array [cnt][3] -> "cnt" "3"
+
 class parse_state(Enum):
     INIT = 0 #looking for typedef
     TYPEDEF = 1 # looking for struct
@@ -17,6 +24,61 @@ class parse_state(Enum):
     START = 4 #looking for }
     END = 5 #looking for the final ;
     DONE = 6
+
+class ir_state(Enum):
+    INIT = 0
+    TYPE = 1
+    VARNAME = 2
+
+
+def extract_IR_from_body(body):
+    res = list()
+    status = ir_state.INIT
+    buf = ""
+    pointer_cnt = 0
+    array_list = list()
+
+    for l in body.split("\n"):
+        l = l.strip()
+        if len(l) == 0:
+            continue
+        elif l[0] == "#": #a new line is mandatory before and after a preprocessor (I think)
+            pass
+
+        if status == ir_state.INIT:
+            vartype = l.split()[0] #not good
+            l = l.split()[1] #dangereous
+            status = ir_state.TYPE
+            #print(vartype)
+        if status == ir_state.TYPE:
+            for c in l: #parse per character
+                if c == "*":
+                    pointer_cnt+=1
+                elif c == " ":
+                    pass
+                elif c.isalpha() == True:
+                    buf += c
+                    status = ir_state.VARNAME
+                    l = l[1:]
+                    break
+                else:
+                    raise Exception
+                l = l[1:]
+        if status == ir_state.VARNAME:
+            for c in l: #parse per character
+                if c == ";":
+                    #print(buf)
+                    ir_node = IR_node(vartype, buf, pointer_cnt, array_list)
+                    res.append(ir_node)
+
+                    buf = ""
+                    pointer_cnt = 0
+                    array_list = list()
+                    status = ir_state.INIT
+                elif c.isalnum() == True:
+                    buf += c
+
+    return res
 
 def remove_comments_from_line(string, is_multiline_comment):
     if is_multiline_comment == True:
