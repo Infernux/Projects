@@ -37,6 +37,7 @@ def extract_IR_from_body(body):
     buf = ""
     pointer_cnt = 0
     array_list = list()
+    iter_count = 0
 
     for l in body.split("\n"):
         l = l.strip()
@@ -45,7 +46,7 @@ def extract_IR_from_body(body):
         elif l[0] == "#": #a new line is mandatory before and after a preprocessor (I think)
             pass
 
-        while l.find(";") != -1:
+        while l.find(";") != -1 and iter_count < MAX_ITER_COUNT:
             if status == ir_state.INIT:
                 new_l = l.split()
                 if len(new_l) <= 1:
@@ -58,9 +59,9 @@ def extract_IR_from_body(body):
                 if len(star_split) > 1:
                     l = star_split[1] + l
                 status = ir_state.TYPE
-                #print(vartype)
             if status == ir_state.TYPE:
                 for c in l: #parse per character
+                    l = l[1:]
                     if c == "*":
                         pointer_cnt+=1
                     elif c == " ":
@@ -68,15 +69,13 @@ def extract_IR_from_body(body):
                     elif c.isalpha() == True:
                         buf += c
                         status = ir_state.VARNAME
-                        l = l[1:]
                         break
                     else:
                         raise Exception
-                    l = l[1:]
             if status == ir_state.VARNAME:
                 for c in l: #parse per character
+                    l = l[1:]
                     if c == ";":
-                        #print(buf)
                         ir_node = IR_node(vartype, buf, pointer_cnt, array_list)
                         res.append(ir_node)
 
@@ -84,10 +83,11 @@ def extract_IR_from_body(body):
                         pointer_cnt = 0
                         array_list = list()
                         status = ir_state.INIT
-                        l = l[1:]
                         break
                     elif c.isalnum() == True:
                         buf += c
+
+            iter_count += 1
 
     return res
 
