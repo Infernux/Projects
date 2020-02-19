@@ -45,38 +45,49 @@ def extract_IR_from_body(body):
         elif l[0] == "#": #a new line is mandatory before and after a preprocessor (I think)
             pass
 
-        if status == ir_state.INIT:
-            vartype = l.split()[0] #not good
-            l = l.split()[1] #dangereous
-            status = ir_state.TYPE
-            #print(vartype)
-        if status == ir_state.TYPE:
-            for c in l: #parse per character
-                if c == "*":
-                    pointer_cnt+=1
-                elif c == " ":
-                    pass
-                elif c.isalpha() == True:
-                    buf += c
-                    status = ir_state.VARNAME
-                    l = l[1:]
+        while l.find(";") != -1:
+            if status == ir_state.INIT:
+                new_l = l.split()
+                if len(new_l) <= 1:
                     break
-                else:
-                    raise Exception
-                l = l[1:]
-        if status == ir_state.VARNAME:
-            for c in l: #parse per character
-                if c == ";":
-                    #print(buf)
-                    ir_node = IR_node(vartype, buf, pointer_cnt, array_list)
-                    res.append(ir_node)
 
-                    buf = ""
-                    pointer_cnt = 0
-                    array_list = list()
-                    status = ir_state.INIT
-                elif c.isalnum() == True:
-                    buf += c
+                star_split = new_l[0].split("*") #handle cases where the star is attached to the variable name
+                vartype = star_split[0]
+                l = " ".join(new_l[1:])
+
+                if len(star_split) > 1:
+                    l = star_split[1] + l
+                status = ir_state.TYPE
+                #print(vartype)
+            if status == ir_state.TYPE:
+                for c in l: #parse per character
+                    if c == "*":
+                        pointer_cnt+=1
+                    elif c == " ":
+                        pass
+                    elif c.isalpha() == True:
+                        buf += c
+                        status = ir_state.VARNAME
+                        l = l[1:]
+                        break
+                    else:
+                        raise Exception
+                    l = l[1:]
+            if status == ir_state.VARNAME:
+                for c in l: #parse per character
+                    if c == ";":
+                        #print(buf)
+                        ir_node = IR_node(vartype, buf, pointer_cnt, array_list)
+                        res.append(ir_node)
+
+                        buf = ""
+                        pointer_cnt = 0
+                        array_list = list()
+                        status = ir_state.INIT
+                        l = l[1:]
+                        break
+                    elif c.isalnum() == True:
+                        buf += c
 
     return res
 
