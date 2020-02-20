@@ -73,6 +73,8 @@ def extract_IR_from_body(body):
                     else:
                         raise Exception
             if status == ir_state.VARNAME:
+                arraybuff = ""
+                isarray_size = False
                 for c in l: #parse per character
                     l = l[1:]
                     if c == ";":
@@ -84,8 +86,21 @@ def extract_IR_from_body(body):
                         array_list = list()
                         status = ir_state.INIT
                         break
-                    elif c.isalnum() == True:
-                        buf += c
+                    elif c.isalnum() == True or c.isidentifier() == True:
+                        # could probably be improved. Currently allows variables starting with a number
+                        # should be something like
+                        # if only numbers then starting with a number is ok
+                        # if there's any other character -> invalid
+                        if isarray_size == False:
+                            buf += c
+                        elif isarray_size == True:
+                            arraybuff += c
+                    elif c == "[":
+                        isarray_size = True
+                    elif c == "]":
+                        array_list.append(arraybuff)
+                        arraybuff = ""
+                        isarray_size = False
 
             iter_count += 1
 

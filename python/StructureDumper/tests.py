@@ -258,7 +258,7 @@ def compareIRs(ir1, ir2):
             print(str(ir1_node.pointer)+" != "+str(ir2_node.pointer))
             return False
         elif ir1_node.array != ir2_node.array:
-            print(str(ir1_node.array)+" != "+str(ir2_node.array))
+            print("Array comparison : "+str(ir1_node.array)+" != "+str(ir2_node.array))
             return False
 
     return True
@@ -302,6 +302,37 @@ class TestBodyParsing(unittest.TestCase):
         node = IR_node("int", "a", 0)
         expected_ir.append(node)
         node = IR_node("int", "b", 0)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_two_known_variables_one_liner_with_pointers_1(self):
+        body = '''
+        int* a;int* b;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 1)
+        expected_ir.append(node)
+        node = IR_node("int", "b", 1)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+
+    def test_two_known_variables_one_liner_with_pointers_2(self):
+        body = '''
+        int* *a;int* b;
+        '''
+
+        expected_ir = list()
+        node = IR_node("int", "a", 2)
+        expected_ir.append(node)
+        node = IR_node("int", "b", 1)
         expected_ir.append(node)
 
         ir = extract_IR_from_body(body)
@@ -354,6 +385,53 @@ class TestBodyParsing(unittest.TestCase):
 
         expected_ir = list()
         node = IR_node("int", "a", 1)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_array(self):
+        body = '''
+        int a[3];
+        '''
+
+        expected_array = list()
+        expected_array.append("3")
+        expected_ir = list()
+        node = IR_node("int", "a", 0, expected_array)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_two_dimensional_array(self):
+        body = '''
+        int a[3][ARRAY_SIZE];
+        '''
+
+        expected_array = list()
+        expected_array.append("3")
+        expected_array.append("ARRAY_SIZE")
+        expected_ir = list()
+        node = IR_node("int", "a", 0, expected_array)
+        expected_ir.append(node)
+
+        ir = extract_IR_from_body(body)
+
+        self.assertTrue(compareIRs(ir, expected_ir))
+
+    def test_one_known_two_dimensional_array_of_pointers(self):
+        body = '''
+        int *a[3][ARRAY_SIZE];
+        '''
+
+        expected_array = list()
+        expected_array.append("3")
+        expected_array.append("ARRAY_SIZE")
+        expected_ir = list()
+        node = IR_node("int", "a", 1, expected_array)
         expected_ir.append(node)
 
         ir = extract_IR_from_body(body)
