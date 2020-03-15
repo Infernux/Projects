@@ -1,1 +1,13 @@
 known_types = dict()
+known_types["uint32_t"] = "%d"
+known_types["uint8_t"] = "%d"
+known_types["int"] = "%d"
+known_types["S1"] = "%d"
+known_types["S2"] = "%d"
+known_types["S4"] = "%d"
+known_types["U1"] = "%d"
+known_types["U2"] = "%d"
+known_types["U4"] = "%d"
+known_types["FL"] = "%f"
+known_types["DB"] = "%f"
+known_types["char"] = "%c"

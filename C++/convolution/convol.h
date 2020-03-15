@@ -2,6 +2,7 @@
 #define __CONVOL_H__
 
 #include "common.h"
+#include <inttypes.h>
 
 class Convol
 {

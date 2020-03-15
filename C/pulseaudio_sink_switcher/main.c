@@ -6,30 +6,8 @@
 #include <pulse/introspect.h>
 #include <pulse/mainloop.h>
 
-#define PRINTF(format, ...) printf(format, ##__VA_ARGS__)
-
-void sink_info_list_callback(pa_context *c, const pa_sink_info *i, int eol, void *userdata)
-{
-  PRINTF("%s\n", __func__);
-  if(eol)
-  {
-    return;
-  }
-
-  PRINTF("sink %d name : %s\n", i->index, i->name);
-}
-
-void source_info_list_callback(pa_context *c, const pa_source_info *i, int eol, void *userdata)
-{
-  PRINTF("%s\n", __func__);
-  if(eol)
-  {
-    return;
-  }
-
-  PRINTF("sink %d name : %s\n", i->index, i->name);
-  PRINTF("card index %d\n", i->card);
-}
+#include "pa_helpers.h"
+#include "helpers.h"
 
 void source_output_info_list_callback(pa_context *c, const pa_source_output_info *i, int eol, void *userdata)
 {
@@ -41,28 +19,6 @@ void source_output_info_list_callback(pa_context *c, const pa_source_output_info
 
   PRINTF("sink %d name : %s\n", i->index, i->name);
   PRINTF("source index %d\n", i->source);
-}
-
-void context_success_callback(pa_context *c, int success, void *userdata)
-{
-  PRINTF("%s\n", __func__);
-}
-
-void sink_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
-{
-  PRINTF("%s\n", __func__);
-  if(eol)
-  {
-    return;
-  }
-
-  PRINTF("sink %d name : %s\n", i->index, i->name);
-  PRINTF("sink index %d\n", i->sink);
-  pa_cvolume volume = i->volume;
-  PRINTF("volume ch : %d %f\n", volume.channels, pa_sw_volume_to_linear(volume.values[0]));
-
-  pa_cvolume *new_vol = pa_cvolume_dec(&volume, pa_sw_volume_from_linear(0.5));
-  pa_context_set_sink_input_volume(c, i->index, new_vol, context_success_callback, userdata);
 }
 
 void connection_callback(pa_context *c, void *userdata)
@@ -81,10 +37,11 @@ void connection_callback(pa_context *c, void *userdata)
       break;
     case PA_CONTEXT_READY:
       PRINTF("Ready\n");
-      pa_operation *state = pa_context_get_sink_info_list(c, sink_info_list_callback, userdata);
-      state = pa_context_get_source_info_list(c, source_info_list_callback, userdata);
-      state = pa_context_get_sink_input_info_list(c, sink_input_info_list_callback, userdata);
-      state = pa_context_get_source_output_info_list(c, source_output_info_list_callback, userdata);
+      list_sinks(c);
+      pa_operation *state = list_sinks_inputs(c);
+      /* while(pa_operation_get_state(state) == PA_OPERATION_RUNNING) */
+      /*state = pa_context_get_source_info_list(c, source_info_list_callback, userdata);
+        state = pa_context_get_source_output_info_list(c, source_output_info_list_callback, userdata);*/
       break;
     case PA_CONTEXT_TERMINATED:
       PRINTF("Terminated\n");
@@ -103,6 +60,8 @@ void connection_callback(pa_context *c, void *userdata)
 int main()
 {
   PRINTF("henlo\n");
+
+  init_database();
 
   pa_mainloop *mainloop = pa_mainloop_new();
   char *servername = NULL;

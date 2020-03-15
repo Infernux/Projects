@@ -6,7 +6,28 @@
 
 #include "kernel.cuh"
 
-#define N 10
+#define N 10000
+#define BLOCK_SIZE 256
+
+void compareBuffers(const float *a, const float *b, const uint32_t arr_size)
+{
+  uint32_t total_failed = 0;
+  for(uint32_t i = 0; i < arr_size; ++i)
+  {
+    if(a[i] != b[i]) {
+      total_failed++;
+    }
+  }
+  printf("failed (%d/%d)\n", total_failed, arr_size);
+}
+
+void referenceAdd(const float *a, const float *b, float *c, const uint32_t arr_size)
+{
+  for(uint32_t i = 0; i < arr_size; ++i)
+  {
+    c[i] = a[i] + b[i];
+  }
+}
 
 void randomizeFloatArray(float *arr, const uint32_t arr_size, const uint32_t seed)
 {
@@ -14,6 +35,14 @@ void randomizeFloatArray(float *arr, const uint32_t arr_size, const uint32_t see
   for(uint32_t i = 0; i < arr_size; ++i)
   {
     arr[i] = rand();
+  }
+}
+
+void initSimpleFloatArray(float *arr, const uint32_t arr_size, const uint32_t offset)
+{
+  for(uint32_t i = 0; i < arr_size; ++i)
+  {
+    arr[i] = i + offset;
   }
 }
 
@@ -28,14 +57,19 @@ void printFloatArray(float *arr, const uint32_t arr_size)
 
 int main()
 {
-  float a[N], b[N], c[N];
+  float *a, *b, *c, *ref_c;
   float *c_in_a, *c_in_b, *c_out_c;
 
-  randomizeFloatArray(a, N, 42);
-  randomizeFloatArray(b, N, 43);
+  a = (float*)malloc(sizeof(float) * N);
+  b = (float*)malloc(sizeof(float) * N);
+  c = (float*)malloc(sizeof(float) * N);
+  ref_c = (float*)malloc(sizeof(float) * N);
 
-  printFloatArray(a, N);
-  printFloatArray(b, N);
+  initSimpleFloatArray(a, N, 0);
+  initSimpleFloatArray(b, N, 43);
+
+  //printFloatArray(a, N);
+  //printFloatArray(b, N);
 
   cudaMalloc((void **) &c_in_a, N * sizeof(float));
   cudaMalloc((void **) &c_in_b, N * sizeof(float));
@@ -44,13 +78,18 @@ int main()
   cudaMemcpy(c_in_a, a, N * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(c_in_b, b, N * sizeof(float), cudaMemcpyHostToDevice);
 
-  kadd<<<1, N>>>(c_in_a,c_in_b,c_out_c);
+  const uint32_t el_per_thread = N / BLOCK_SIZE;
+
+  kadd<<<1, BLOCK_SIZE>>>(c_in_a, c_in_b, c_out_c, el_per_thread);
 
   cudaMemcpy(c, c_out_c, N * sizeof(float), cudaMemcpyDeviceToHost);
 
-  printFloatArray(c, N);
+  //printFloatArray(c, N);
 
   cudaFree(c_in_a);
   cudaFree(c_in_b);
   cudaFree(c_out_c);
+
+  referenceAdd(a, b, ref_c, N);
+  compareBuffers(ref_c, c, N);
 }

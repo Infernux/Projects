@@ -5,6 +5,26 @@
 
 #include "utils.h"
 
+void skipComments(char *str, FILE *f)
+{
+  char bufskip[50];
+  fgets(bufskip, 50, f); /* fseek */
+
+  if(bufskip[0] == '#')
+  {
+    skipUntilNewLine(f);
+  }
+}
+
+/* returns :
+ *  > 0 when finding a new line
+ *  -1 when not finding a new line
+ * */
+uint8_t skipUntilNewLine(char *str, uint32_t buffer_size)
+{
+  for(int i=0; i < 5- 
+}
+
 ImageStruct* readAsciiPpm(char *path)
 {
   FILE *f = fopen(path, "r");
@@ -12,6 +32,8 @@ ImageStruct* readAsciiPpm(char *path)
 
   char bufskip[50];
   fgets(bufskip, 50, f); /* fseek */
+
+
 
   int width = read_int(f);
   int height = read_int(f);
@@ -23,7 +45,6 @@ ImageStruct* readAsciiPpm(char *path)
   pst_return->width = width;
   pst_return->height = height;
   pst_return->pitch = width;
-
 
   pst_return->r = malloc(sizeof(uint8_t) * height * pitch);
   pst_return->g = malloc(sizeof(uint8_t) * height * pitch);
