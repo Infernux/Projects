@@ -1,0 +1,2 @@
+#define majVersion @main_VERSION_MAJOR@
+#define minVersion @main_VERSION_MINOR@
