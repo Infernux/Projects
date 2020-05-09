@@ -13,6 +13,7 @@ for(uint32_t bit = 0; bit < 8; ++bit) { \
 
 #ifdef __ARM_NEON
 #include "arm_neon.h"
+void print_int8x8_t(const char *title, int8x8_t v);
 void print_uint8x8_t(const char *title, uint8x8_t v);
 void print_uint8x16_t(const char *title, uint8x16_t v);
 void print_uint16x4_t(const char *title, uint16x4_t v);
