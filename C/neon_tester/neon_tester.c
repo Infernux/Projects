@@ -86,6 +86,48 @@ void vmls_test() {
   print_uint8x8_t("vmls", vmls_u8(op1, op2, op3));
 }
 
+/*
+ * mul both vectors then doubles the result,
+ * and returns the upper half of the result
+ * */
+void vqdmulh_test() {
+  printf("---- %s ----\n", __func__);
+  int16x4_t op1 = {127,  2,255,  0,  5,  6,  7,  8};
+  int16x4_t op2 = {  3, 28, 10,  1, 18, 68, 72, 80};
+  /* expected result */
+  /* 762, 112, 5100, 0, 180...*/
+  /* upper : */
+  /* 10, 0, 10011, 0, 0 */
+  /* expected result */
+  print_int16x4_t("", op1);
+  print_int16x4_t("", op2);
+  print_int16x4_t("vqdmulh", vqdmulh_s16(op1, op2));
+}
+
+/* A64のみ */
+#if 0
+void vmull_high() {
+  printf("---- %s ----\n", __func__);
+  int8x16_t op1 = {127,  2,255,  0,  5,  6,  7,  8};
+  int8x16_t op2 = {  3, 28, 10,  1, 18, 68, 72, 80};
+  print_int8x16_t("", op1);
+  print_int8x16_t("", op2);
+  print_int16x8_t("vmull_high", vmull_high_s8(op1, op2));
+}
+#endif
+
+void vsubw_test() {
+  printf("---- %s ----\n", __func__);
+  uint16x8_t op1 = {127,  2,255,  0,  5,  6,  7,  8};
+  uint8x8_t  op2 = {  3, 28, 10,  1, 18, 68, 72, 80};
+  /* expected */
+  /* 124, でかい, 245, でかい, でかい、でかい、でかい*/
+  /* expected */
+  print_uint16x8_t("", op1);
+  print_uint8x8_t ("", op2);
+  print_uint16x8_t("vsubw", vsubw_u8(op1, op2));
+}
+
 void main() {
   printf("Neon tester\n");
 
@@ -94,7 +136,9 @@ void main() {
   //vqadd_test();
   //vaddhn_test();
   //vmla_test();
-  vmls_test();
+  //vmls_test();
+  vqdmulh_test();
+  //vmull_high();
 }
 
 #endif
