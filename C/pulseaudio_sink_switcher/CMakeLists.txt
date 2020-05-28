@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(pss VERSION 1.0)
+
+add_executable(
+  pss
+  main.c
+  pa_helpers.c
+)
+
+target_include_directories(
+  pss
+  PUBLIC
+  "${PROJECT_BINARY_DIR}"
+)
+
+find_library(
+  PULSE_LIB
+  pulse
+)
+
+target_link_libraries(
+  pss
+  PRIVATE
+  "${PULSE_LIB}"
+)
