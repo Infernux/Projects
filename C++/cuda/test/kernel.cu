@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 __global__ void kadd(float *a, float *b, float *c, const unsigned int el_per_thread)
 {
   int i = blockIdx.x * blockDim.x + threadIdx.x;

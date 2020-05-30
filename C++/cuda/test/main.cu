@@ -6,7 +6,7 @@
 
 #include "kernel.cuh"
 
-#define N 10000
+#define N 100000
 #define BLOCK_SIZE 256
 
 void compareBuffers(const float *a, const float *b, const uint32_t arr_size)
@@ -15,6 +15,7 @@ void compareBuffers(const float *a, const float *b, const uint32_t arr_size)
   for(uint32_t i = 0; i < arr_size; ++i)
   {
     if(a[i] != b[i]) {
+      printf("Failed index %d\n", i);
       total_failed++;
     }
   }
@@ -78,9 +79,13 @@ int main()
   cudaMemcpy(c_in_a, a, N * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(c_in_b, b, N * sizeof(float), cudaMemcpyHostToDevice);
 
-  const uint32_t el_per_thread = N / BLOCK_SIZE;
+  //const uint32_t el_per_thread = (uint32_t)ceil((double)N / (double)BLOCK_SIZE);
+  const uint32_t el_per_thread = 1;
+  const uint32_t block_count = (uint32_t)ceil(((double)N / el_per_thread) / (double)BLOCK_SIZE);
 
-  kadd<<<1, BLOCK_SIZE>>>(c_in_a, c_in_b, c_out_c, el_per_thread);
+  printf("el per thread : %d, block_count : %d\n", el_per_thread, block_count);
+
+  kadd<<<block_count, BLOCK_SIZE>>>(c_in_a, c_in_b, c_out_c, el_per_thread);
 
   cudaMemcpy(c, c_out_c, N * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -92,4 +97,9 @@ int main()
 
   referenceAdd(a, b, ref_c, N);
   compareBuffers(ref_c, c, N);
+
+  free(a);
+  free(b);
+  free(c);
+  free(ref_c);
 }

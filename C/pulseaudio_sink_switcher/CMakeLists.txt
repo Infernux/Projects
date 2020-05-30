@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 
 project(pss VERSION 1.0)
 
+set(DEBUG ON)
+if(DEBUG)
+  add_definitions(
+    -g
+  )
+endif()
+
 add_executable(
   pss
   main.c

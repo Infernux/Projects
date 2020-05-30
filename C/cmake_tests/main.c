@@ -3,7 +3,7 @@
 
 #include "version.h"
 
-#include "my_math.h"
+#include "math_library/my_math.h"
 
 int main()
 {

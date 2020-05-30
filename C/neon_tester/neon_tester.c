@@ -92,8 +92,8 @@ void vmls_test() {
  * */
 void vqdmulh_test() {
   printf("---- %s ----\n", __func__);
-  int16x4_t op1 = {127,  2,255,  0,  5,  6,  7,  8};
-  int16x4_t op2 = {  3, 28, 10,  1, 18, 68, 72, 80};
+  int16x4_t op1 = {127,  2,255,  0};
+  int16x4_t op2 = {  3, 28, 10,  1};
   /* expected result */
   /* 762, 112, 5100, 0, 180...*/
   /* upper : */
@@ -128,6 +128,21 @@ void vsubw_test() {
   print_uint16x8_t("vsubw", vsubw_u8(op1, op2));
 }
 
+void vqtbx4q_test() {
+  uint8x8_t a = {0, 1, 2, 3, 4, 5, 6, 7};
+  uint8x16x4_t b;
+  for(uint8_t i=0; i<16; ++i) {
+    b.val[0][i] = i+3;
+    b.val[1][i] = 16 + i;
+    b.val[2][i] = 32 + i;
+    b.val[3][i] = 48 + i;
+  }
+  uint8x8_t c = {1, 128, 130, 11, 12, 13, 14, 15};
+  print_uint8x8_t ("", a);
+  print_uint8x8_t ("", c);
+  print_uint8x8_t("vqtbx4", vqtbx4_u8(a, b, c));
+}
+
 void main() {
   printf("Neon tester\n");
 
@@ -137,8 +152,8 @@ void main() {
   //vaddhn_test();
   //vmla_test();
   //vmls_test();
-  vqdmulh_test();
   //vmull_high();
+  vqtbx4q_test();
 }
 
 #endif

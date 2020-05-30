@@ -15,6 +15,22 @@ void print_int8x8_t(const char *title, int8x8_t v) {
   printf("\n");
 }
 
+void print_int16x4_t(const char *title, int16x4_t v) {
+  printf("%10s : ",title);
+  int16_t *i16_el = (int16_t*)&v;
+  uint32_t el=0;
+  for(el=0; el<3; ++el) {
+    PRINT_BYTE((i16_el[el] & 0xff00) >> 8);
+    printf(" ");
+    PRINT_BYTE(i16_el[el] & 0xff);
+    printf(",");
+  }
+  PRINT_BYTE((i16_el[el] & 0xff00) >> 8);
+  printf(" ");
+  PRINT_BYTE(i16_el[el] & 0xff);
+  printf("\n");
+}
+
 void print_uint8x8_t(const char *title, uint8x8_t v) {
   printf("%10s : ",title);
   uint8_t *u8_el = (uint8_t*)&v;

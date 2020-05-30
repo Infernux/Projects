@@ -9,6 +9,7 @@
 #include "pa_helpers.h"
 #include "helpers.h"
 #include "queue.h"
+#include "unistd.h"
 
 #define RUN_COMMAND(func) \
 { \
@@ -19,6 +20,7 @@
 }
 
 static enum pa_context_state state;
+static uint8_t running = 1;
 
 void source_output_info_list_callback(pa_context *c, const pa_source_output_info *i, int eol, void *userdata)
 {
@@ -91,11 +93,16 @@ int main()
   printf("out 1\n");
 
   Queue *queue = createQueue();
-  queue->func[0] = list_sinks;
-  queue->func[1] = list_sinks_inputs;
 
-  RUN_COMMAND(queue->func[0]);
-  RUN_COMMAND(queue->func[1]);
+  push(queue, list_sinks_inputs);
+  push(queue, list_sinks);
+
+  while(running) {
+    while(isEmpty(queue)) {
+      sleep(2);
+    }
+    RUN_COMMAND(pop(queue));
+  }
   printf("out\n");
 
   freeQueue(queue);
