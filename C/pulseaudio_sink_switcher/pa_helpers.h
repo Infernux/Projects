@@ -6,8 +6,11 @@
 #include <pulse/introspect.h>
 #include <pulse/mainloop.h>
 
+#define GET_VOLUME(volume) pa_sw_volume_to_linear(volume.values[0])
+
 typedef struct sink_info_sub_
 {
+  uint8_t valid;
   char name[50];
   uint32_t index;
   pa_cvolume volume;
@@ -16,6 +19,7 @@ typedef struct sink_info_sub_
 
 typedef struct sink_input_info_sub_
 {
+  uint8_t valid;
   char name[50];
   uint32_t index;
   pa_cvolume volume;

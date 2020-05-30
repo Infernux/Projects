@@ -8,6 +8,17 @@
 
 #include "pa_helpers.h"
 #include "helpers.h"
+#include "queue.h"
+
+#define RUN_COMMAND(func) \
+{ \
+  pa_operation *operation_state = func(context); \
+  do { \
+    pa_mainloop_iterate(mainloop, 1, NULL); \
+  } while(pa_operation_get_state(operation_state) == PA_OPERATION_RUNNING); \
+}
+
+static enum pa_context_state state;
 
 void source_output_info_list_callback(pa_context *c, const pa_source_output_info *i, int eol, void *userdata)
 {
@@ -23,7 +34,7 @@ void source_output_info_list_callback(pa_context *c, const pa_source_output_info
 
 void connection_callback(pa_context *c, void *userdata)
 {
-  pa_context_state_t state = pa_context_get_state(c);
+  state = pa_context_get_state(c);
 
   PRINTF("%s\n", __func__);
 
@@ -37,11 +48,6 @@ void connection_callback(pa_context *c, void *userdata)
       break;
     case PA_CONTEXT_READY:
       PRINTF("Ready\n");
-      list_sinks(c);
-      pa_operation *state = list_sinks_inputs(c);
-      /* while(pa_operation_get_state(state) == PA_OPERATION_RUNNING) */
-      /*state = pa_context_get_source_info_list(c, source_info_list_callback, userdata);
-        state = pa_context_get_source_output_info_list(c, source_output_info_list_callback, userdata);*/
       break;
     case PA_CONTEXT_TERMINATED:
       PRINTF("Terminated\n");
@@ -73,16 +79,29 @@ int main()
 
   const pa_spawn_api *spawn_api = NULL; /* parameters on how to spawn a thread */
 
-  enum pa_context_state state = PA_CONTEXT_CONNECTING;
+  state = PA_CONTEXT_CONNECTING;
   pa_context_set_state_callback(context, connection_callback, &state);
 
   /* connect */
   int error = pa_context_connect(context, servername, PA_CONTEXT_NOAUTOSPAWN, spawn_api);
-  while(state != PA_CONTEXT_READY && state != PA_CONTEXT_FAILED)
-  {
+  while(state != PA_CONTEXT_READY && state != PA_CONTEXT_FAILED) {
     pa_mainloop_iterate(mainloop, 1, NULL);
   }
 
+  printf("out 1\n");
+
+  Queue *queue = createQueue();
+  queue->func[0] = list_sinks;
+  queue->func[1] = list_sinks_inputs;
+
+  RUN_COMMAND(queue->func[0]);
+  RUN_COMMAND(queue->func[1]);
+  printf("out\n");
+
+  freeQueue(queue);
+
   /* disconnect */
   pa_context_disconnect(context);
+
+  pa_mainloop_free(mainloop);
 }

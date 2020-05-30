@@ -6,6 +6,7 @@ add_executable(
   pss
   main.c
   pa_helpers.c
+  queue.c
 )
 
 target_include_directories(
