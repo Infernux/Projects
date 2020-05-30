@@ -6,15 +6,16 @@
 
 Queue* createQueue(uint32_t size) {
   Queue *queue = malloc(sizeof(Queue));
+  queue->func = malloc(sizeof(void*) * size);
   queue->head = &queue->func[0];
   queue->size = 0;
   queue->current_index = 0;
-  //queue->capacity = size;
-  queue->capacity = MAX_QUEUE_SIZE;
+  queue->capacity = size;
   return queue;
 }
 
 void freeQueue(Queue *queue) {
+  free(queue->func);
   free(queue);
 }
 

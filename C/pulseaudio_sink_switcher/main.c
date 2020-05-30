@@ -92,7 +92,7 @@ int main()
 
   printf("out 1\n");
 
-  Queue *queue = createQueue();
+  Queue *queue = createQueue(32);
 
   push(queue, list_sinks_inputs);
   push(queue, list_sinks);
