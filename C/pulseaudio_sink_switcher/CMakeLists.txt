@@ -13,6 +13,7 @@ add_executable(
   pss
   main.c
   pa_helpers.c
+  client_socket.c
   socket_manager.c
   queue.c
 )

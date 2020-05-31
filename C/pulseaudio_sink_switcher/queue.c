@@ -27,7 +27,10 @@ uint8_t isFull(Queue *queue) {
 }
 
 uint8_t isEmpty(Queue *queue) {
-  return (queue->size == 0);
+  pthread_mutex_lock(&queue->mutex);
+  uint8_t b_isEmpty = (queue->size == 0);
+  pthread_mutex_unlock(&queue->mutex);
+  return (b_isEmpty);
 }
 /* not thread safe ! */
 
