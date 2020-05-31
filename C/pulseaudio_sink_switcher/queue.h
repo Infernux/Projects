@@ -2,6 +2,7 @@
 #define QUEUE_H__
 
 #include <inttypes.h>
+#include <pthread.h>
 
 #include <pulse/context.h>
 
@@ -14,6 +15,8 @@ typedef struct Queue_ {
   uint32_t size;
   uint32_t current_index; /* tracks head's current index */
   uint32_t capacity;
+
+  pthread_mutex_t mutex;
 } Queue;
 
 Queue* createQueue();
