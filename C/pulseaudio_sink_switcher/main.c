@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
 
 #include <pulse/context.h>
 #include <pulse/error.h>
 #include <pulse/introspect.h>
 #include <pulse/mainloop.h>
 
-#include "pa_helpers.h"
 #include "helpers.h"
+#include "pa_helpers.h"
 #include "queue.h"
-#include "unistd.h"
+#include "socket_manager.h"
 
 #define RUN_COMMAND(func) \
 { \
@@ -90,9 +92,12 @@ int main()
     pa_mainloop_iterate(mainloop, 1, NULL);
   }
 
-  printf("out 1\n");
+  printf("Pulseaudio is ready\n");
 
   Queue *queue = createQueue(32);
+
+  pthread_t socket_manager;
+  pthread_create(&socket_manager, NULL, start_socket_manager, queue);
 
   push(queue, list_sinks_inputs);
   push(queue, list_sinks);
@@ -104,6 +109,8 @@ int main()
     RUN_COMMAND(pop(queue));
   }
   printf("out\n");
+
+  pthread_join(socket_manager, NULL);
 
   freeQueue(queue);
 

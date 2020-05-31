@@ -13,6 +13,7 @@ add_executable(
   pss
   main.c
   pa_helpers.c
+  socket_manager.c
   queue.c
 )
 
@@ -30,5 +31,6 @@ find_library(
 target_link_libraries(
   pss
   PRIVATE
+  -lpthread
   "${PULSE_LIB}"
 )
