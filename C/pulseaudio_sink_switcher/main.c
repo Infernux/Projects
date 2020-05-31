@@ -99,9 +99,6 @@ int main()
   pthread_t socket_manager;
   pthread_create(&socket_manager, NULL, start_socket_manager, queue);
 
-  push(queue, list_sinks_inputs);
-  push(queue, list_sinks);
-
   while(running) {
     while(isEmpty(queue)) {
       sleep(2);
