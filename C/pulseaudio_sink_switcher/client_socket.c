@@ -1,5 +1,6 @@
 #include "client_socket.h"
 
+#include <arpa/inet.h>
 #include <sys/select.h>
 #include <stdio.h>
 
@@ -18,11 +19,14 @@ void *clients_handler(void *args) {
   push(cha->queue, list_sinks_inputs);
 
   do {
-    if(select(cs->count, cs->read_fds, NULL, NULL, &timeout) >= 0) {
-      for(int i=0; i<cs->count; ++i) {
-        if(FD_ISSET(cs->fds[i], cs->read_fds)) {
+    fd_set active_set = cs->read_fds[0];
+    /* select should return 0 on timeout */
+    if(select(FD_SETSIZE, &active_set, NULL, NULL, &timeout) >= 0) {
+      for(int i=0; i<FD_SETSIZE; ++i) {
+        if(FD_ISSET(i, &active_set)) {
           printf("Select triggered\n");
           push(cha->queue, list_sinks);
+          FD_CLR(i, &active_set);
         }
       }
     }else{
