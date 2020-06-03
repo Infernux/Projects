@@ -8,6 +8,9 @@
 void add_tlv_value_to_queue(Queue *queue, TLV *tlv) {
   switch(tlv->type) {
     case 0:
+      push(queue, list_sinks);
+      break;
+    case 1:
       push(queue, list_sinks_inputs);
       break;
     default:
