@@ -7,14 +7,18 @@
 
 #include "client_socket.h"
 #include "pa_helpers.h"
+#include "pa_tlv_mapper.h"
 #include "queue.h"
+#include "tlv.h"
 
 #define MAXSIZE 100
 
 Clients_struct clients_struct;
 uint8_t running = 1;
 
-int32_t read_tlvs(int fd, char *buffer, int32_t char_read) {
+int32_t read_tlvs(int fd, Queue *queue, char *buffer, int32_t char_read) {
+  TLV tlv;
+
   int processed = 0;
   char tmp[MAXSIZE];
   while(char_read > 0) {
@@ -41,6 +45,12 @@ int32_t read_tlvs(int fd, char *buffer, int32_t char_read) {
 
     memcpy(tmp, &buffer[processed + sizeof(int) * 2], sizeof(char) * len);
     printf("Client sent type %d len %d : %s\n", type, len, tmp);
+
+    tlv.type = type;
+    tlv.length = len;
+    tlv.value = tmp;
+
+    add_tlv_value_to_queue(queue, &tlv);
 
     char_read -= sizeof(char) * len;
     processed += sizeof(char) * len + sizeof(int) * 2;
@@ -135,10 +145,10 @@ void* start_socket_manager(void *args) {
                * first consume what we read
                * if there is not more than 16 bytes, it means we can't have type and len
                * */
-              read_tlvs(i, buffer, char_read);
+              read_tlvs(i, queue, buffer, char_read);
 
               while((char_read = read(i, buffer, MAXSIZE)) > 0) {
-                read_tlvs(i, buffer, char_read);
+                read_tlvs(i, queue, buffer, char_read);
               }
               //push(queue, list_sinks_inputs);
             }

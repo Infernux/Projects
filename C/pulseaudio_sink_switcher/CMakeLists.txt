@@ -14,6 +14,7 @@ add_executable(
   main.c
   pa_helpers.c
   client_socket.c
+  pa_tlv_mapper.c
   socket_manager.c
   queue.c
 )
