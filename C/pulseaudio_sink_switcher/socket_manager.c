@@ -66,7 +66,7 @@ void* start_socket_manager(void *args) {
 
   memset(&clients_struct, 0, sizeof(Clients_struct));
 
-  int server_fd, val;
+  int server_fd, max_fd, val;
   struct sockaddr_in add;
   int opt = 1;
   int addrlen = sizeof(struct sockaddr_in);
@@ -106,6 +106,7 @@ void* start_socket_manager(void *args) {
   }
 
   FD_ZERO(&clients_struct.read_fds[0]);
+  max_fd = server_fd;
   struct timeval timeout = { .tv_sec =  1,
                            .tv_usec = 0 };
 
@@ -115,43 +116,58 @@ void* start_socket_manager(void *args) {
   while(running) {
     active_set = clients_struct.read_fds[0];
 
+    printf("Clients count %d\n", clients_struct.count);
+
     int select_res = select(FD_SETSIZE, &active_set, NULL, NULL, NULL);
     if(select_res == 0) {
       continue;
     }
-    if(select_res > 0) {
-      for(int i=0; i<FD_SETSIZE; ++i) {
-        if(FD_ISSET(i, &active_set)) {
-          if(i == server_fd) {
-            printf("New connection\n");
-            int newfd = accept(server_fd, (struct sockaddr*)&add,
-                (socklen_t*)&addrlen);
-            if(newfd < 0) {
-              printf("Failure\n");
-            }
-            clients_struct.fds[clients_struct.count] = newfd;
-            FD_SET(newfd, &clients_struct.read_fds[0]);
-            clients_struct.count++; /* create a proper list of clients */
-          } else {
-            char buffer[MAXSIZE];
-            int32_t char_read = read(i, buffer, MAXSIZE);
-            if(char_read < 0) {
-              printf("Read error\n");
-            } else if (char_read == 0) {
-              printf("EOF : client disconnected\n");
-              FD_CLR(i, &clients_struct.read_fds[0]);
-            } else {
-              /*
-               * first consume what we read
-               * if there is not more than 16 bytes, it means we can't have type and len
-               * */
-              read_tlvs(i, queue, buffer, char_read);
+    if(select_res < 0) {
+      printf("Something really wrong happened\n");
+      break;
+    }
+    for(int i=0; i<FD_SETSIZE && select_res > 0; ++i) {
+      if(FD_ISSET(i, &active_set)) {
+        select_res--;
+        if(i == server_fd) {
+          int newfd = accept(server_fd, (struct sockaddr*)&add,
+              (socklen_t*)&addrlen);
+          if(newfd < 0) {
+            printf("Failure\n");
+          }
+          printf("-------\n");
+          printf("Server fd %d\n", server_fd);
+          printf("New connection (%d)\n", newfd);
 
-              while((char_read = read(i, buffer, MAXSIZE)) > 0) {
-                read_tlvs(i, queue, buffer, char_read);
-              }
-              //push(queue, list_sinks_inputs);
+          clients_struct.fds[clients_struct.count] = newfd;
+          FD_SET(newfd, &clients_struct.read_fds[0]);
+          if(newfd > max_fd) {
+            max_fd = newfd;
+          }
+          clients_struct.count++; /* create a proper list of clients */
+        } else {
+          char buffer[MAXSIZE];
+          int32_t char_read = read(i, buffer, MAXSIZE);
+          if(char_read < 0) {
+            printf("Read error (%d)\n", i);
+            FD_CLR(i, &clients_struct.read_fds[0]);
+            close(i);
+          } else if (char_read == 0) {
+            printf("EOF : client disconnected (%d)\n", i);
+            printf("-------\n");
+            FD_CLR(i, &clients_struct.read_fds[0]);
+            clients_struct.count--;
+          } else {
+            /*
+             * first consume what we read
+             * if there is not more than 16 bytes, it means we can't have type and len
+             * */
+            read_tlvs(i, queue, buffer, char_read);
+
+            while((char_read = read(i, buffer, MAXSIZE)) > 0) {
+              read_tlvs(i, queue, buffer, char_read);
             }
+            break;
           }
         }
       }
