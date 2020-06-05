@@ -8,6 +8,44 @@
 static sink_info st_sink_info;
 static sink_input_info st_sink_input_info;
 
+void add_sink_info(sink_info *sink_info, const pa_sink_info *new_info) {
+  if (sink_info->u1_sink_count < MAX_SINK_COUNT) {
+    sink_info_sub *sis = &sink_info->sinks[sink_info->u1_sink_count];
+    PRINTF("sink %d name : %s\n", new_info->index, new_info->name);
+    PRINTF("volume idx : %d %f\n", new_info->index, GET_VOLUME(new_info->volume));
+    sis->index = new_info->index;
+    strncpy(sis->name, new_info->name, 50);
+    sis->volume = new_info->volume;
+    sink_info->u1_sink_count++;
+  }
+}
+
+void clear_sink_info(sink_info *sink_info) {
+  sink_info->u1_sink_count = 0;
+}
+
+void add_sink_input_info(sink_input_info *sink_input_info, const pa_sink_input_info *new_info) {
+  if (sink_input_info->u1_sink_count < MAX_SINK_INPUT_COUNT) {
+    PRINTF("sink count : %d\n", sink_input_info->u1_sink_count);
+    PRINTF("sink input %d name : %s\n", new_info->index, new_info->name);
+    PRINTF("attached to sink index %d\n", new_info->sink);
+    pa_cvolume volume = new_info->volume;
+    PRINTF("volume ch : %d %f\n", volume.channels, GET_VOLUME(new_info->volume));
+
+    printf("%d\n", new_info->index);
+    sink_input_info_sub *sii = &sink_input_info->sinks[sink_input_info->u1_sink_count];
+    strncpy(sii->name, new_info->name, 50);
+    sii->volume = volume;
+    sii->mute = new_info->mute;
+
+    sink_input_info->u1_sink_count++;
+  }
+}
+
+void clear_sink_input_info(sink_input_info *sink_input_info) {
+  sink_input_info->u1_sink_count = 0;
+}
+
 void init_database()
 {
   st_sink_info.u1_sink_count = 0;
@@ -29,14 +67,7 @@ void sink_info_list_callback(pa_context *c, const pa_sink_info *i, int eol, void
     return;
   }
 
-  sink_info_sub *sis = &st_sink_info.sinks[st_sink_info.u1_sink_count];
-  PRINTF("sink %d name : %s\n", i->index, i->name);
-  PRINTF("volume idx : %d %f\n", i->index, GET_VOLUME(i->volume));
-  sis->index = i->index;
-  strncpy(sis->name, sis->name, 50);
-  sis->volume = i->volume;
-
-  st_sink_info.u1_sink_count++;
+  add_sink_info(&st_sink_info, i);
 }
 
 void sink_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, int eol, void *userdata)
@@ -47,18 +78,7 @@ void sink_input_info_list_callback(pa_context *c, const pa_sink_input_info *i, i
     return;
   }
 
-  PRINTF("sink input %d name : %s\n", i->index, i->name);
-  PRINTF("attached to sink index %d\n", i->sink);
-  pa_cvolume volume = i->volume;
-  PRINTF("volume ch : %d %f\n", volume.channels, GET_VOLUME(i->volume));
-
-  printf("%d\n", i->index);
-  sink_input_info_sub *sii = &st_sink_input_info.sinks[st_sink_input_info.u1_sink_count];
-  strncpy(sii->name, i->name, 50);
-  sii->volume = volume;
-  sii->mute = i->mute;
-
-  st_sink_input_info.u1_sink_count++;
+  add_sink_input_info(&st_sink_input_info, i);
 }
 
 pa_operation* list_sinks(pa_context *c)

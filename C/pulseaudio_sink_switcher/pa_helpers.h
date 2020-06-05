@@ -8,6 +8,9 @@
 
 #define GET_VOLUME(volume) pa_sw_volume_to_linear(volume.values[0])
 
+#define MAX_SINK_COUNT 5
+#define MAX_SINK_INPUT_COUNT 20
+
 typedef struct sink_info_sub_
 {
   uint8_t valid;
@@ -29,13 +32,13 @@ typedef struct sink_input_info_sub_
 typedef struct sink_info_
 {
   uint8_t u1_sink_count;
-  sink_info_sub sinks[5];
+  sink_info_sub sinks[MAX_SINK_COUNT];
 } sink_info;
 
 typedef struct sink_input_info_
 {
   uint8_t u1_sink_count;
-  sink_input_info_sub sinks[20];
+  sink_input_info_sub sinks[MAX_SINK_INPUT_COUNT];
 } sink_input_info;
 
 void init_database();
