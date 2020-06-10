@@ -13,7 +13,7 @@ add_executable(
   pss
   main.c
   pa_helpers.c
-  client_socket.c
+  #client_socket.c
   pa_tlv_mapper.c
   socket_manager.c
   queue.c
@@ -36,3 +36,8 @@ target_link_libraries(
   -lpthread
   "${PULSE_LIB}"
 )
+
+add_custom_target(
+  mem
+  valgrind ./pss 
+  )

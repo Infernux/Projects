@@ -13,12 +13,13 @@
 #include "queue.h"
 #include "socket_manager.h"
 
-#define RUN_COMMAND(func) \
+#define RUN_COMMAND(transaction) \
 { \
-  pa_operation *operation_state = func(context); \
+  pa_operation *operation_state = transaction.func(context, transaction.args); \
   do { \
     pa_mainloop_iterate(mainloop, 1, NULL); \
   } while(pa_operation_get_state(operation_state) == PA_OPERATION_RUNNING); \
+  free(transaction.args); \
 }
 
 static enum pa_context_state state;
@@ -99,11 +100,14 @@ int main()
   pthread_t socket_manager;
   pthread_create(&socket_manager, NULL, start_socket_manager, queue);
 
+  Transaction transaction;
+
   while(running) {
     while(isEmpty(queue)) {
       sleep(2);
     }
-    RUN_COMMAND(pop(queue));
+    Transaction transaction = pop(queue);
+    RUN_COMMAND(transaction);
   }
   printf("out\n");
 

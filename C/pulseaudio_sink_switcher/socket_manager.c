@@ -37,7 +37,7 @@ int32_t read_tlvs(int fd, Queue *queue, char *buffer, int32_t char_read) {
       size_t needed = len - char_read;
       printf("Reading more : %d (%d/%d)\n", needed, char_read, len);
       /* ewww */
-      memcpy(tmp, &buffer[processed + sizeof(int) * 2 + char_read], char_read);
+      memcpy(tmp, &buffer[processed + sizeof(int) * 2 + char_read], char_read * sizeof(char));
       /* ewww */
       char_read += read(fd, &buffer[sizeof(int) * 2 + char_read], needed);
       processed = 0;
