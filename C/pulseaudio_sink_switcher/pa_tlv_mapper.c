@@ -19,7 +19,6 @@ void add_tlv_value_to_queue(Queue *queue, TLV *tlv) {
       transaction.args = NULL;
       break;
     case TYPE_MUTE_SINK:
-      printf("Here\n");
       transaction.func = mute_sink;
       transaction.args = malloc(sizeof(uint32_t) * 1);
       memcpy(transaction.args, tlv->value, sizeof(uint32_t) * 1);
@@ -28,6 +27,11 @@ void add_tlv_value_to_queue(Queue *queue, TLV *tlv) {
       transaction.func = mute_sink_input;
       transaction.args = malloc(sizeof(uint32_t) * 1);
       memcpy(transaction.args, tlv->value, sizeof(uint32_t) * 1);
+      break;
+    case TYPE_MOVE_INPUT_SINK:
+      transaction.func = move_sink_input_to_sink_idx;
+      transaction.args = malloc(sizeof(uint32_t) * 2);
+      memcpy(transaction.args, tlv->value, sizeof(uint32_t) * 2);
       break;
     default:
       printf("Unknown instruction");

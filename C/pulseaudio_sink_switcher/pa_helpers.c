@@ -15,7 +15,7 @@ void add_sink_info(sink_info *sink_info, const pa_sink_info *new_info) {
     strncpy(sis->name, new_info->name, 50);
     sis->volume = new_info->volume;
     sink_info->u1_sink_count++;
-    PRINTF("sink %d name : %s\n", sis->index, sis->name);
+    PRINTF("sink %u name : %s\n", sis->index, sis->name);
     PRINTF("volume idx : %d %f\n", sis->index, GET_VOLUME(sis->volume));
   }
 }
@@ -27,7 +27,7 @@ void clear_sink_info(sink_info *sink_info) {
 void get_sink_info(sink_info *sink_info) {
   for(uint32_t i=0; i<sink_info->u1_sink_count; ++i) {
     sink_info_sub *sis = &sink_info->sinks[sink_info->u1_sink_count];
-    PRINTF("sink %d name : %s\n", sis->index, sis->name);
+    PRINTF("sink %u name : %s\n", sis->index, sis->name);
     PRINTF("volume idx : %d %f\n", sis->index, GET_VOLUME(sis->volume));
   }
 }
@@ -41,6 +41,10 @@ void add_sink_input_info(sink_input_info *sink_input_info, const pa_sink_input_i
     sii->volume = volume;
     sii->mute = new_info->mute;
     sii->sink_index = new_info->sink;
+
+    PRINTF("sink input %u name : %s\n", new_info->index, new_info->name);
+    PRINTF("attached to sink index %u\n", sii->sink_index);
+    PRINTF("volume ch : %d %f\n", sii->volume.channels, GET_VOLUME(sii->volume));
 
     sink_input_info->u1_sink_count++;
   }
@@ -102,6 +106,7 @@ pa_operation* list_sinks(pa_context *c, void* args)
 
 pa_operation* list_sinks_inputs(pa_context *c, void* args)
 {
+  clear_sink_input_info(&st_sink_input_info);
   return pa_context_get_sink_input_info_list(c, sink_input_info_list_callback, NULL);
 }
 
@@ -111,7 +116,9 @@ void move_sink_input_to_sink_idx_callback(pa_context *c, int success, void *user
 }
 
 pa_operation* move_sink_input_to_sink_idx(pa_context *c, void* args) {
-  const uint32_t sink_input_idx, sink_idx;
+  uint32_t *u32_args = (uint32_t*)args;
+  const uint32_t sink_input_idx = u32_args[0];
+  const uint32_t sink_idx = u32_args[1];
   return pa_context_move_sink_input_by_index(c, sink_input_idx, sink_idx, move_sink_input_to_sink_idx_callback, NULL);
 }
 
@@ -129,12 +136,21 @@ pa_operation* mute_sink(pa_context *c, void *args) {
 
 void mute_sink_input_callback(pa_context *c, int success, void *userdata)
 {
-  PRINTF("%s\n", __func__);
+  PRINTF("%s : success %d\n", __func__, success);
 }
 
 pa_operation* mute_sink_input(pa_context *c, void *args) {
+  PRINTF("%s\n", __func__);
   const uint32_t index = *((uint32_t*)args);
-  return pa_context_set_sink_input_mute(c, index, 1, mute_sink_callback, NULL);
+  PRINTF("Muting sink input %d\n", index);
+  return pa_context_set_sink_input_mute(c, index, 1, mute_sink_input_callback, NULL);
+}
+
+pa_operation* set_sink_input_volume(pa_context *c, void *args) {
+  PRINTF("%s\n", __func__);
+  const uint32_t index = ((uint32_t*)args)[0];
+  const uint32_t volume = ((uint32_t*)args)[1];
+  return pa_context_set_sink_input_volume(c, index, 1, mute_sink_input_callback, NULL);
 }
 
 double get_volume_for_sink_index(pa_context *c, int index)
