@@ -3,7 +3,34 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "bit_debug.h"
 #include "image_dump_tools.h"
+
+#define FORMAT_LENGTH 15
+
+static uint32_t get_significant_bit_count(uint32_t val, uint32_t max_length)
+{
+  uint32_t length = max_length;
+  for(int32_t i=max_length-1; i>=0; i--) {
+    if((val & (1 << i)) == 0) {
+      length--;
+    } else {
+      break;
+    }
+  }
+  return length;
+}
+
+#define REMOVE_HEAD_0_U16(val, starting) \
+{ \
+  for(int32_t i=0; i<starting; i++) { \
+    if((val & (1<<(starting-1)))==0) { \
+      val<<=1; \
+    } else { \
+      break; \
+    } \
+  } \
+}
 
 #define RESIZE_FACTOR 20
 
@@ -34,27 +61,54 @@ typedef enum MASK_TYPE_ {
   MASK_VERTICAL_INTERLEAVE /* j % 3 == 0 */
 } MASK_TYPE;
 
+typedef enum ERROR_CORRECTION_MASK_BITS_ {
+  ERROR_CORRECTION_MASK_BITS_M=0,
+  ERROR_CORRECTION_MASK_BITS_L,
+  ERROR_CORRECTION_MASK_BITS_H,
+  ERROR_CORRECTION_MASK_BITS_Q
+} ERROR_CORRECTION_MASK_BITS;
+
 static uint8_t qrbuffer[COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1)];
 
+/* polynome : x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 */
+#define GENERATOR_POLYNOME ((1<<10)|(1<<8)|(1<<5)|(1<<4)|(1<<2)|(1<<1)|(1))
+#define GENERATOR_POLYNOME_LENGTH (11)
+#define ERROR_CORRECTION_BIT_XOR_MASK (0x5412) /* 101010000010010 */
+static uint16_t generateErrorCorrectionBits(const ERROR_CORRECTION_MASK_BITS ecmb, const MASK_TYPE mt) {
+  uint16_t base_ecb = (ecmb << 3) + mt;
+  base_ecb <<= 10;
+  uint16_t ecb = base_ecb;
+  uint32_t ecb_len = get_significant_bit_count(ecb, 15);
+  while(ecb_len >= GENERATOR_POLYNOME_LENGTH) {
+    uint32_t padded_generator_polynome = GENERATOR_POLYNOME << (ecb_len - GENERATOR_POLYNOME_LENGTH);
+    ecb = ecb ^ padded_generator_polynome;
+    ecb_len = get_significant_bit_count(ecb, 15);
+  }
+  base_ecb += ecb;
+  base_ecb = base_ecb ^ ERROR_CORRECTION_BIT_XOR_MASK;
+  return base_ecb;
+}
+
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
-  printf("EC level : %d\n", ec_level);
-  info[0] = 1;
-  info[1] = 0;
-  info[2] = 1;
-  info[13] = (ec_level & 1) ? 1 : 0;
-  info[14] = (ec_level & 2) ? 1 : 0;
+  uint16_t format = generateErrorCorrectionBits(ERROR_CORRECTION_MASK_BITS_L, mask_type);
+  for(uint32_t i=0; i<15; i++) {
+    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? 1 : 0;
+  }
 }
 
 void drawFormat(uint8_t *buf, const uint8_t *info, uint32_t width) {
-  uint32_t info_index = 0;
+  uint32_t info_index = FORMAT_LENGTH-1;
   for(uint32_t i=0; i<6; ++i) {
-    buf[(i) * width + 8] = info[info_index];
-    info_index++;
+    buf[(i) * width + 8] = info[info_index--];
   }
-  /*for(uint32_t i=0; i<POSITION_MARKER_SIZE - 1; ++i) {
+  buf[(7 * width + 8)] = info[info_index--];
+  buf[(8 * width + 8)] = info[info_index--];
+  buf[(8 * width + 7)] = info[info_index--];
+
+  for(int32_t i=5; i>=0; --i) {
     buf[(POSITION_MARKER_SIZE + 1) * width + i] = info[info_index];
-    info_index++;
-  }*/
+    info_index--;
+  }
 }
 
 void drawTiming(uint8_t *buf, uint32_t width) {
@@ -98,7 +152,7 @@ int main() {
   setPositionMarker(qrbuffer, 21);
   drawTiming(qrbuffer, 21);
 
-  uint8_t format[15] = {0};
+  uint8_t format[FORMAT_LENGTH] = {0};
   generateFormat(format, EC_LEVEL_LOW, MASK_HOR_INTERLEAVE);
   drawFormat(qrbuffer, format, 21);
 
