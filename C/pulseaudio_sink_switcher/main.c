@@ -15,11 +15,12 @@
 
 #define RUN_COMMAND(transaction) \
 { \
-  pa_operation *operation_state = transaction.func(context, transaction.args); \
+  pa_operation *operation_state = transaction.func(context, transaction.args, transaction.socket_fd); \
   do { \
     pa_mainloop_iterate(mainloop, 1, NULL); \
   } while(pa_operation_get_state(operation_state) == PA_OPERATION_RUNNING); \
   free(transaction.args); \
+  free(transaction.socket_fd); \
 }
 
 static enum pa_context_state state;

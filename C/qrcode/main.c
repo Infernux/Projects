@@ -5,7 +5,17 @@
 
 #include "image_dump_tools.h"
 
+#define RESIZE_FACTOR 20
+
 #define POSITION_MARKER_SIZE 7
+#define QR_BASE_SIZE 17
+#define COMPUTE_SIZE(version) (QR_BASE_SIZE + 4*version)
+
+typedef enum VERSION_ {
+  VERSION_1=1,
+  VERSION_2
+} VERSION;
+
 typedef enum EC_LEVEL_ {
   EC_LEVEL_HIGH = 0,
   EC_LEVEL_Q,
@@ -24,7 +34,7 @@ typedef enum MASK_TYPE_ {
   MASK_VERTICAL_INTERLEAVE /* j % 3 == 0 */
 } MASK_TYPE;
 
-static uint8_t qrbuffer[21*21];
+static uint8_t qrbuffer[COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1)];
 
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
   printf("EC level : %d\n", ec_level);
@@ -92,6 +102,6 @@ int main() {
   generateFormat(format, EC_LEVEL_LOW, MASK_HOR_INTERLEAVE);
   drawFormat(qrbuffer, format, 21);
 
-  saveAsTextPbm("image.ppm", qrbuffer, 21, 21);
+  saveAsTextPbm("image.ppm", qrbuffer, 21, 21, RESIZE_FACTOR);
   return 0;
 }

@@ -44,11 +44,11 @@ typedef struct sink_input_info_
 
 void init_database();
 
-pa_operation* list_sinks(pa_context *c, void *args);
-pa_operation* list_sinks_inputs(pa_context *c, void *args);
-pa_operation* mute_sink(pa_context *c, void *args);
-pa_operation* mute_sink_input(pa_context *c, void *args);
-pa_operation* move_sink_input_to_sink_idx(pa_context *c, void* args);
+pa_operation* list_sinks(pa_context *c, void *args, int *fd);
+pa_operation* list_sinks_inputs(pa_context *c, void *args, int *fd);
+pa_operation* mute_sink(pa_context *c, void *args, int *fd);
+pa_operation* mute_sink_input(pa_context *c, void *args, int *fd);
+pa_operation* move_sink_input_to_sink_idx(pa_context *c, void* args, int *fd);
 double get_volume_for_sink_index(pa_context *c, int index);
 void set_volume_for_sink_index(pa_context *c, int index, double volume);
 

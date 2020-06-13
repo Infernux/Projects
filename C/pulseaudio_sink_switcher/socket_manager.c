@@ -50,7 +50,7 @@ int32_t read_tlvs(int fd, Queue *queue, char *buffer, int32_t char_read) {
     tlv.length = len;
     tlv.value = tmp;
 
-    add_tlv_value_to_queue(queue, &tlv);
+    add_tlv_value_to_queue(queue, &tlv, fd);
 
     char_read -= sizeof(char) * len;
     processed += sizeof(char) * len + sizeof(int) * 2;

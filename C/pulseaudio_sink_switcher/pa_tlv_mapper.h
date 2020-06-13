@@ -12,6 +12,6 @@ enum {
   TYPE_MOVE_INPUT_SINK
 };
 
-void add_tlv_value_to_queue(Queue *queue, TLV *tlv);
+void add_tlv_value_to_queue(Queue *queue, TLV *tlv, int fd);
 
 #endif /* PA_TLV_MAPPER_H__ */

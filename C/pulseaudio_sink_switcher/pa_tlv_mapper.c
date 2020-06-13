@@ -7,8 +7,10 @@
 #include "pa_helpers.h"
 #include "queue.h"
 
-void add_tlv_value_to_queue(Queue *queue, TLV *tlv) {
+void add_tlv_value_to_queue(Queue *queue, TLV *tlv, int fd) {
   Transaction transaction;
+  transaction.socket_fd = (int*)malloc(sizeof(int));
+  *transaction.socket_fd = fd;
   switch(tlv->type) {
     case TYPE_LIST_SINKS:
       transaction.func = list_sinks;

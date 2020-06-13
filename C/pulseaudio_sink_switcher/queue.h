@@ -10,8 +10,9 @@
 #define QUEUE_FAILED 0
 
 typedef struct Transaction_ {
-  pa_operation*(*func)(pa_context*, void *args);
+  pa_operation*(*func)(pa_context*, void *args, int *fd);
   void *args;
+  int *socket_fd;
 } Transaction;
 
 typedef struct Queue_ {

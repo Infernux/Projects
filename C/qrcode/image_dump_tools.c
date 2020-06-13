@@ -150,7 +150,7 @@ int saveAsTextPgm(const char *path, const uint8_t *image, const int width, const
   fclose(f);
 }
 
-int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const int height)
+int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const int height, const uint32_t resize_factor)
 {
   FILE *f = fopen(path, "w");
   if(!f)
@@ -160,16 +160,23 @@ int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const
   }
 
   fprintf(f, "P1\n");
-  fprintf(f, "%d %d\n", width, height);
+  fprintf(f, "%d %d\n", width * resize_factor, height * resize_factor);
 
   unsigned int x, y;
-  for(y=0; y<height; ++y)
+  unsigned int real_x = 0, real_y = 0;
+  for(y=0; y<height * resize_factor; ++y)
   {
-    for(x=0; x<width; ++x)
+    for(x=0; x<width * resize_factor; ++x)
     {
-      fprintf(f, "%01d ", image[(y * width) + x] != 0);
+      fprintf(f, "%01d ", image[((y/resize_factor) * width) + (x/resize_factor)] != 0);
+      if(x % resize_factor == (resize_factor - 1)) {
+        real_x++;
+      }
     }
     fprintf(f, "\n");
+    if(y % resize_factor == (resize_factor - 1)) {
+      real_y++;
+    }
   }
 
   fclose(f);
