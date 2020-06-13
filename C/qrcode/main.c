@@ -123,8 +123,7 @@ void drawTiming(uint8_t *buf, uint32_t width) {
       buf[(width * (7 + i)) + 6] = 1;
     }
   }
-  buf[(width - 7) * width + 8] = 1;
-  printf("Width %u\n", realEstate);
+  buf[(width - 8) * width + 8] = 1;
 }
 
 void drawMarker(uint8_t *buf, uint32_t width) {
