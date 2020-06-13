@@ -97,33 +97,43 @@ void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
 }
 
 void drawFormat(uint8_t *buf, const uint8_t *info, uint32_t width) {
+  /* top left */
   uint32_t info_index = FORMAT_LENGTH-1;
   for(uint32_t i=0; i<6; ++i) {
-    buf[(i) * width + 8] = info[info_index--];
+    buf[(i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index--];
   }
-  buf[(7 * width + 8)] = info[info_index--];
-  buf[(8 * width + 8)] = info[info_index--];
-  buf[(8 * width + 7)] = info[info_index--];
+  buf[(POSITION_MARKER_SIZE * width + (POSITION_MARKER_SIZE+1))] = info[info_index--];
+  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE+1))] = info[info_index--];
+  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE))] = info[info_index--];
 
   for(int32_t i=5; i>=0; --i) {
     buf[(POSITION_MARKER_SIZE + 1) * width + i] = info[info_index];
     info_index--;
   }
+
+  /* bottom left && top right */
+  info_index = 0;
+  for(uint32_t i=0; i<6; ++i) {
+    buf[(width - 1 - i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index++];
+  }
+  for(uint32_t i=0; i<8; ++i) {
+    buf[(POSITION_MARKER_SIZE + 2) * width - (POSITION_MARKER_SIZE + 1) + i] = info[info_index++];
+  }
 }
 
-void drawTiming(uint8_t *buf, uint32_t width) {
+void drawTiming(uint8_t *buf, uint32_t width, VERSION version) {
   uint32_t realEstate = width - 2 * POSITION_MARKER_SIZE;
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * 6) + (7 + i)] = 1;
+      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = 1;
     }
   }
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * (7 + i)) + 6] = 1;
+      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = 1;
     }
   }
-  buf[(width - 8) * width + 8] = 1;
+  buf[(4 * version + 9) * width + 8] = 1; /* dark module */
 }
 
 void drawMarker(uint8_t *buf, uint32_t width) {
@@ -142,14 +152,14 @@ void drawMarker(uint8_t *buf, uint32_t width) {
 
 void setPositionMarker(uint8_t *buf, uint32_t width) {
   drawMarker(buf, width);
-  drawMarker(&buf[width-7], width);
-  drawMarker(&buf[(width-7) * width], width);
+  drawMarker(&buf[width-POSITION_MARKER_SIZE], width);
+  drawMarker(&buf[(width-POSITION_MARKER_SIZE) * width], width);
 }
 
 int main() {
   printf("Qrcode\n");
   setPositionMarker(qrbuffer, 21);
-  drawTiming(qrbuffer, 21);
+  drawTiming(qrbuffer, 21, VERSION_1);
 
   uint8_t format[FORMAT_LENGTH] = {0};
   generateFormat(format, EC_LEVEL_LOW, MASK_HOR_INTERLEAVE);
