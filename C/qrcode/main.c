@@ -71,6 +71,21 @@ typedef enum ERROR_CORRECTION_MASK_BITS_ {
   ERROR_CORRECTION_MASK_BITS_Q
 } ERROR_CORRECTION_MASK_BITS;
 
+typedef enum ENCODING_ {
+  ENCODING_NUMERIC = 0x1,
+  ENCODING_ALPHANUMERIC = 0x2,
+  ENCODING_BYTE = 0x4,
+  ENCODING_KANJI = 0x8,
+  ENCODING_ECI = 0x7 /* ? */
+} ENCODING;
+
+#define ENCODING_LEN 4
+
+#define V1_ENCODING_LEN_NUMERIC 10
+#define V1_ENCODING_LEN_ALPHA   9
+#define V1_ENCODING_LEN_BYTE    8
+#define V1_ENCODING_LEN_KANJI   8
+
 static uint8_t qrbuffer[COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1)];
 
 /* polynome : x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 */
@@ -187,6 +202,111 @@ static void setSeparators(uint8_t *buf, uint32_t width) {
   }
 }
 
+static inline uint8_t convertCharToAlphanumeric(const char character) {
+    uint8_t res = 0;
+    switch(character) {
+      case '0':
+        res = 0;
+        break;
+      case '1':
+        res = 1;
+        break;
+      case 'D':
+        res = 13;
+        break;
+      case 'E':
+        res = 14;
+        break;
+      case 'H':
+        res = 17;
+        break;
+      case 'L':
+        res = 21;
+        break;
+      case 'O':
+        res = 24;
+        break;
+      case 'R':
+        res = 27;
+        break;
+      case 'W':
+        res = 32;
+        break;
+      case ' ':
+        res = 36;
+        break;
+      default:
+        printf("Invalid character %c\n", character);
+        break;
+    }
+    return res;
+}
+
+/* encode by pairs */
+static void encodeMessageAlphanumeric(const char *string, const uint32_t length, uint8_t *encoded) {
+  uint32_t i = 0;
+  uint32_t index = 0;
+  for(i = 0; i < length-1; i+=2) {
+    uint8_t char1 = convertCharToAlphanumeric(string[i]);
+    uint8_t char2 = convertCharToAlphanumeric(string[i+1]);
+    uint16_t charpair = char1 * 45 + char2; /* 45 is the maximum char */
+    for(uint32_t ind = 0; ind < 11; ++ind) {
+      encoded[index] = charpair & (1 << ind) ? 1 : ZERO_SET;
+      index++;
+    }
+  }
+  if(length - index) { /* length % 2 != 0 */
+    uint8_t char1 = convertCharToAlphanumeric(string[i]);
+    for(uint32_t ind = 0; ind < 6; ++ind) {
+      encoded[index] = char1 & (1 << ind) ? 1 : ZERO_SET;
+    }
+  }
+}
+
+void encodeMessage(const char *string, const uint32_t length, const ENCODING encoding, uint8_t *encoded) {
+  encoded[0] = encoding & 1 ? 1 : ZERO_SET;
+  encoded[1] = encoding & 2 ? 1 : ZERO_SET;
+  encoded[2] = encoding & 4 ? 1 : ZERO_SET;
+  encoded[3] = encoding & 8 ? 1 : ZERO_SET;
+
+  switch(encoding) {
+    case ENCODING_NUMERIC:
+      encoded[ENCODING_LEN + 9] = length & (1 << 9) ? 1 : ZERO_SET;
+    case ENCODING_ALPHANUMERIC:
+      encoded[ENCODING_LEN + 8] = length & (1 << 8) ? 1 : ZERO_SET;
+    case ENCODING_BYTE:
+    case ENCODING_KANJI:
+      encoded[ENCODING_LEN + 7] = length & (1 << 7) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 6] = length & (1 << 6) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 5] = length & (1 << 5) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 4] = length & (1 << 4) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 3] = length & (1 << 3) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 2] = length & (1 << 2) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 1] = length & (1 << 1) ? 1 : ZERO_SET;
+      encoded[ENCODING_LEN + 0] = length & (1 << 0) ? 1 : ZERO_SET;
+  }
+
+  switch(encoding) {
+    case ENCODING_NUMERIC:
+      break;
+    case ENCODING_ALPHANUMERIC:
+      encodeMessageAlphanumeric(string, length, &encoded[ENCODING_LEN + 8 + 1]);
+      break;
+    case ENCODING_BYTE:
+      break;
+    case ENCODING_KANJI:
+      break;
+    case ENCODING_ECI:
+      break;
+    default:
+      printf("Unknown encoding\n");
+      exit(1);
+  }
+}
+
+void drawData(uint8_t *buf, const uint8_t *message, const uint32_t length, const uint32_t width) {
+}
+
 int main() {
   printf("Qrcode\n");
   setPositionMarker(qrbuffer, 21);
@@ -196,6 +316,15 @@ int main() {
   uint8_t format[FORMAT_LENGTH] = {0};
   generateFormat(format, EC_LEVEL_LOW, MASK_HOR_INTERLEAVE);
   drawFormat(qrbuffer, format, 21);
+
+  /*
+   * should pack into a single byte but ... not for now
+   * right now, a single output bit is stored into one byte
+   * */
+  uint8_t message[1024] = {0};
+  encodeMessage("HELLO WORLD", 11, ENCODING_ALPHANUMERIC, message);
+
+  drawData(qrbuffer, message, 40, 21);
 
   saveAsTextPbm("image.ppm", qrbuffer, 21, 21, RESIZE_FACTOR);
   return 0;
