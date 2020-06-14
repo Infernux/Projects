@@ -8,6 +8,9 @@
 
 #define FORMAT_LENGTH 15
 
+#define ZERO_SET 2
+#define SEPARATOR_SIZE 1
+
 static uint32_t get_significant_bit_count(uint32_t val, uint32_t max_length)
 {
   uint32_t length = max_length;
@@ -92,7 +95,7 @@ static uint16_t generateErrorCorrectionBits(const ERROR_CORRECTION_MASK_BITS ecm
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
   uint16_t format = generateErrorCorrectionBits(ERROR_CORRECTION_MASK_BITS_L, mask_type);
   for(uint32_t i=0; i<15; i++) {
-    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? 1 : 0;
+    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? 1 : ZERO_SET;
   }
 }
 
@@ -113,7 +116,7 @@ void drawFormat(uint8_t *buf, const uint8_t *info, uint32_t width) {
 
   /* bottom left && top right */
   info_index = 0;
-  for(uint32_t i=0; i<6; ++i) {
+  for(uint32_t i=0; i<7; ++i) {
     buf[(width - 1 - i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index++];
   }
   for(uint32_t i=0; i<8; ++i) {
@@ -126,11 +129,15 @@ void drawTiming(uint8_t *buf, uint32_t width, VERSION version) {
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
       buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = 1;
+    } else {
+      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = ZERO_SET;
     }
   }
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
       buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = 1;
+    } else {
+      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = ZERO_SET;
     }
   }
   buf[(4 * version + 9) * width + 8] = 1; /* dark module */
@@ -139,13 +146,17 @@ void drawTiming(uint8_t *buf, uint32_t width, VERSION version) {
 void drawMarker(uint8_t *buf, uint32_t width) {
   memset(buf, 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
   buf[width * 1 + 0] = 1;
+  memset(&buf[width * 1 + 1], ZERO_SET, sizeof(uint8_t) * 5);
   buf[width * 1 + 6] = 1;
   for(uint32_t i=0; i<3; ++i) {
     buf[(width * (2 + i)) + 0] = 1;
+    buf[(width * (2 + i)) + 1] = ZERO_SET;
     memset(&buf[(width * (2 + i)) + 2], 1, sizeof(uint8_t) * 3);
+    buf[(width * (2 + i)) + 5] = ZERO_SET;
     buf[(width * (2 + i)) + 6] = 1;
   }
   buf[width * 5 + 0] = 1;
+  memset(&buf[width * 5 + 1], ZERO_SET, sizeof(uint8_t) * 5);
   buf[width * 5 + 6] = 1;
   memset(&buf[width * 6], 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
 }
@@ -156,9 +167,30 @@ void setPositionMarker(uint8_t *buf, uint32_t width) {
   drawMarker(&buf[(width-POSITION_MARKER_SIZE) * width], width);
 }
 
+static void setSeparators(uint8_t *buf, uint32_t width) {
+  /* top left */
+  memset(&buf[POSITION_MARKER_SIZE * width], ZERO_SET, POSITION_MARKER_SIZE+1);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(i*width) + (POSITION_MARKER_SIZE)] = ZERO_SET;
+  }
+
+  /* top right */
+  memset(&buf[POSITION_MARKER_SIZE * width + (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)], ZERO_SET, POSITION_MARKER_SIZE+SEPARATOR_SIZE);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(i*width) + (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)] = ZERO_SET;
+  }
+
+  /* bottom left */
+  memset(&buf[width * (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)], ZERO_SET, POSITION_MARKER_SIZE+SEPARATOR_SIZE);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(width * (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE + i)) + (POSITION_MARKER_SIZE)] = ZERO_SET;
+  }
+}
+
 int main() {
   printf("Qrcode\n");
   setPositionMarker(qrbuffer, 21);
+  setSeparators(qrbuffer, 21);
   drawTiming(qrbuffer, 21, VERSION_1);
 
   uint8_t format[FORMAT_LENGTH] = {0};

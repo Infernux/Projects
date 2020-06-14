@@ -168,7 +168,7 @@ int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const
   {
     for(x=0; x<width * resize_factor; ++x)
     {
-      fprintf(f, "%01d ", image[((y/resize_factor) * width) + (x/resize_factor)] != 0);
+      fprintf(f, "%01d ", image[((y/resize_factor) * width) + (x/resize_factor)] == 1 ? 1 : 0);
       if(x % resize_factor == (resize_factor - 1)) {
         real_x++;
       }
