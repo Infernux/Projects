@@ -5,8 +5,10 @@
 
 #include "bit_debug.h"
 #include "image_dump_tools.h"
+#include "galois_helper.h"
 
 #define FORMAT_LENGTH 15
+#define QRCODE_ECC_MODULO 0x11D /* 100011101 */
 
 #define ZERO_SET 2
 #define SEPARATOR_SIZE 1
@@ -400,6 +402,8 @@ int main() {
   uint8_t format[FORMAT_LENGTH] = {0};
   generateFormat(format, EC_LEVEL_Q, MASK_HOR_INTERLEAVE);
   drawFormat(qrbuffer, format, 21);
+
+  initialize_gf256(QRCODE_ECC_MODULO);
 
   /*
    * should pack into a single byte but ... not for now
