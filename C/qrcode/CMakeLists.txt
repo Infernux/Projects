@@ -12,6 +12,7 @@ endif()
 add_executable(
   qrcode_reader
   main.c
+  ecc.c
   galois_helper.c
   image_dump_tools.c
 )

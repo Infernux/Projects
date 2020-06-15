@@ -4,26 +4,18 @@
 #include <string.h>
 
 #include "bit_debug.h"
-#include "image_dump_tools.h"
+#include "ecc.h"
 #include "galois_helper.h"
+#include "image_dump_tools.h"
+#include "qrcode_constants.h"
 
 #define FORMAT_LENGTH 15
-#define QRCODE_ECC_MODULO 0x11D /* 100011101 */
 
 #define ZERO_SET 2
 #define SEPARATOR_SIZE 1
 
 #define PADDING_PATTERN_1 0xEC
 #define PADDING_PATTERN_2 0x11
-
-#define V1_L_CODEWORD_COUNT 19
-#define V1_M_CODEWORD_COUNT 16
-#define V1_Q_CODEWORD_COUNT 13
-#define V1_H_CODEWORD_COUNT 9
-#define V1_L_EC_COUNT 7
-#define V1_M_EC_COUNT 10
-#define V1_Q_EC_COUNT 13
-#define V1_H_EC_COUNT 17
 
 #define min(a,b) (a<b?a:b)
 
@@ -53,54 +45,9 @@ static uint32_t get_significant_bit_count(uint32_t val, uint32_t max_length)
 
 #define RESIZE_FACTOR 20
 
-#define POSITION_MARKER_SIZE 7
-#define QR_BASE_SIZE 17
-#define COMPUTE_SIZE(version) (QR_BASE_SIZE + 4*version)
 
-typedef enum VERSION_ {
-  VERSION_1=1,
-  VERSION_2
-} VERSION;
-
-typedef enum EC_LEVEL_ {
-  EC_LEVEL_HIGH = 0,
-  EC_LEVEL_Q,
-  EC_LEVEL_MED,
-  EC_LEVEL_LOW
-} EC_LEVEL;
-
-typedef enum MASK_TYPE_ {
-  MASK_1=0,
-  MASK_2,
-  MASK_3,
-  MASK_4,
-  MASK_HOR_INTERLEAVE,
-  MASK_CHECKERBOARD,
-  MASK_DIAGONAL_WAVE,
-  MASK_VERTICAL_INTERLEAVE /* j % 3 == 0 */
-} MASK_TYPE;
-
-typedef enum ERROR_CORRECTION_MASK_BITS_ {
-  ERROR_CORRECTION_MASK_BITS_M=0,
-  ERROR_CORRECTION_MASK_BITS_L,
-  ERROR_CORRECTION_MASK_BITS_H,
-  ERROR_CORRECTION_MASK_BITS_Q
-} ERROR_CORRECTION_MASK_BITS;
-
-typedef enum ENCODING_ {
-  ENCODING_NUMERIC = 0x1,
-  ENCODING_ALPHANUMERIC = 0x2,
-  ENCODING_BYTE = 0x4,
-  ENCODING_KANJI = 0x8,
-  ENCODING_ECI = 0x7 /* ? */
-} ENCODING;
 
 #define ENCODING_LEN 4
-
-#define V1_ENCODING_LEN_NUMERIC 10
-#define V1_ENCODING_LEN_ALPHA   9
-#define V1_ENCODING_LEN_BYTE    8
-#define V1_ENCODING_LEN_KANJI   8
 
 static uint8_t qrbuffer[COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1)];
 
@@ -411,6 +358,8 @@ int main() {
    * */
   uint8_t message[1024] = {0};
   encodeMessage("HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_Q_CODEWORD_COUNT * 8, message);
+
+  computeECC(message, V1_Q_CODEWORD_COUNT, V1_Q_EC_COUNT, &message[V1_Q_CODEWORD_COUNT * 8]);
 
   drawData(qrbuffer, message, 21);
 
