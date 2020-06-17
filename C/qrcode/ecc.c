@@ -13,19 +13,35 @@ static uint8_t tmp_generator_polynome[68];
 //static uint8_t tmp_generator_polynome2[68];
 static int16_t tmp_generator_polynome2[68];
 
+#define print_polynome(pol, size) \
+{ \
+  for(int i=0; i<size; ++i) { \
+    printf("%dx^%d + ", pol[i], size-1-i); \
+  } \
+  printf("\n"); \
+}
+
+#define pp(m) \
+{ \
+  for(uint32_t j=0; j<8; ++j) { \
+    printf("%d", m[j]); \
+  } \
+  printf("\n"); \
+}
+
 static void generateMessagePolynome(const uint8_t *message, const uint32_t length, uint8_t *polynome) {
   uint8_t curr;
   for(uint32_t i=0; i<length; ++i) {
-    polynome[i] = message[i] << 7 |
-      message[i+1] << 6 |
-      message[i+2] << 5 |
-      message[i+3] << 4 |
-      message[i+4] << 3 |
-      message[i+5] << 2 |
-      message[i+6] << 1 |
-      message[i+7] << 0
+    polynome[i] = message[0] << 7 |
+      message[1] << 6 |
+      message[2] << 5 |
+      message[3] << 4 |
+      message[4] << 3 |
+      message[5] << 2 |
+      message[6] << 1 |
+      message[7] << 0
       ;
-    printf("%d : %d\n", i, polynome[i]);
+
     message += 8;
   }
 }
@@ -66,13 +82,19 @@ static void computeGeneratorPolynome(const uint32_t ecc_codeword_count, uint8_t 
       polynome[copy_idx] = tmp_generator_polynome2[copy_idx];
     }
   }
+  #if 0
   for(int i=max(len1-1, 2); i>=0; --i) {
     printf("%dx^%d + ", polynome[i], i);
   }
   printf("\n");
+  #endif
 }
 
 void computeECC(const uint8_t *message, const uint32_t data_codeword_count, const uint32_t ecc_codeword_count, uint8_t *ecc_output) {
   generateMessagePolynome(message, data_codeword_count, message_polynome);
   computeGeneratorPolynome(ecc_codeword_count, generator_polynome);
+  print_polynome(generator_polynome, ecc_codeword_count);
+
+  multiplyPolynomes(message_polynome, data_codeword_count, tmp_generator_polynome, ecc_codeword_count);
+  print_polynome(message_polynome, data_codeword_count + ecc_codeword_count);
 }

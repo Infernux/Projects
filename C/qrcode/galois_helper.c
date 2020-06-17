@@ -12,7 +12,7 @@ uint8_t gf256_antilog[256];
  * */
 
 static void computeGF256(uint16_t modulo) {
-  printf("--- %s ---\n", __func__);
+  //printf("--- %s ---\n", __func__);
   gf256[0] = 1; /* 2^0 */
 
   uint16_t prev = gf256[0];
@@ -26,12 +26,12 @@ static void computeGF256(uint16_t modulo) {
   }
 
   for(uint32_t i=0; i<256; ++i) {
-    printf("%d : %d\n", i, gf256[i]);
+    //printf("%d : %d\n", i, gf256[i]);
   }
 }
 
 static void computeAntilogTable() {
-  printf("--- %s ---\n", __func__);
+  //printf("--- %s ---\n", __func__);
   for(uint32_t alpha=1; alpha<256; ++alpha) {
     for(uint32_t antialpha=0; antialpha<256; ++antialpha) {
       if(gf256[antialpha] == alpha) {
@@ -42,7 +42,7 @@ static void computeAntilogTable() {
   }
 
   for(uint32_t i=0; i<256; ++i) {
-    printf("%d : %d\n", i, gf256_antilog[i]);
+    //printf("%d : %d\n", i, gf256_antilog[i]);
   }
 }
 

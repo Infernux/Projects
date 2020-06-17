@@ -9,6 +9,14 @@
 #include "image_dump_tools.h"
 #include "qrcode_constants.h"
 
+#define pp(m, count) \
+{ \
+  for(uint32_t i=0; i<count; ++i) { \
+    printf("%d", m[i]); \
+  } \
+  printf("\n"); \
+}
+
 #define FORMAT_LENGTH 15
 
 #define ZERO_SET 2
@@ -174,6 +182,21 @@ static inline uint8_t convertCharToAlphanumeric(const char character) {
       case '1':
         res = 1;
         break;
+      case '2':
+        res = 2;
+        break;
+      case '3':
+        res = 3;
+        break;
+      case 'A':
+        res = 10;
+        break;
+      case 'B':
+        res = 11;
+        break;
+      case 'C':
+        res = 12;
+        break;
       case 'D':
         res = 13;
         break;
@@ -213,14 +236,14 @@ static uint32_t encodeMessageAlphanumeric(const char *string, const uint32_t len
     uint8_t char1 = convertCharToAlphanumeric(string[i]);
     uint8_t char2 = convertCharToAlphanumeric(string[i+1]);
     uint16_t charpair = char1 * 45 + char2; /* 45 is the maximum char */
-    for(uint32_t ind = 0; ind < 11; ++ind) {
-      encoded[index++] = charpair & (1 << ind) ? 1 : ZERO_SET;
+    for(int32_t ind = 10; ind >= 0; --ind) {
+      encoded[index++] = charpair & (1 << ind) ? 1 : 0;
     }
   }
   if(length - index) { /* length % 2 != 0 */
     uint8_t char1 = convertCharToAlphanumeric(string[i]);
-    for(uint32_t ind = 0; ind < 6; ++ind) {
-      encoded[index++] = char1 & (1 << ind) ? 1 : ZERO_SET;
+    for(int32_t ind = 5; ind >= 0; --ind) {
+      encoded[index++] = char1 & (1 << ind) ? 1 : 0;
     }
   }
 
@@ -229,37 +252,33 @@ static uint32_t encodeMessageAlphanumeric(const char *string, const uint32_t len
 
 void encodeMessage(const char *string, const uint32_t length, const ENCODING encoding, const uint32_t max_len, uint8_t *encoded) {
   uint32_t bit_count = 0;
-  encoded[0] = encoding & 1 ? 1 : ZERO_SET;
-  encoded[1] = encoding & 2 ? 1 : ZERO_SET;
-  encoded[2] = encoding & 4 ? 1 : ZERO_SET;
-  encoded[3] = encoding & 8 ? 1 : ZERO_SET;
-  bit_count = 4;
+  encoded[bit_count++] = encoding & 8 ? 1 : 0;
+  encoded[bit_count++] = encoding & 4 ? 1 : 0;
+  encoded[bit_count++] = encoding & 2 ? 1 : 0;
+  encoded[bit_count++] = encoding & 1 ? 1 : 0;
 
   switch(encoding) {
     case ENCODING_NUMERIC:
-      encoded[ENCODING_LEN + 9] = length & (1 << 9) ? 1 : ZERO_SET;
-      bit_count++;
+      encoded[bit_count++] = length & (1 << 9) ? 1 : 0;
     case ENCODING_ALPHANUMERIC:
-      encoded[ENCODING_LEN + 8] = length & (1 << 8) ? 1 : ZERO_SET;
-      bit_count++;
+      encoded[bit_count++] = length & (1 << 8) ? 1 : 0;
     case ENCODING_BYTE:
     case ENCODING_KANJI:
-      encoded[ENCODING_LEN + 7] = length & (1 << 7) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 6] = length & (1 << 6) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 5] = length & (1 << 5) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 4] = length & (1 << 4) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 3] = length & (1 << 3) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 2] = length & (1 << 2) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 1] = length & (1 << 1) ? 1 : ZERO_SET;
-      encoded[ENCODING_LEN + 0] = length & (1 << 0) ? 1 : ZERO_SET;
-      bit_count += 8;
+      encoded[bit_count++] = length & (1 << 7) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 6) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 5) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 4) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 3) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 2) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 1) ? 1 : 0;
+      encoded[bit_count++] = length & (1 << 0) ? 1 : 0;
   }
 
   switch(encoding) {
     case ENCODING_NUMERIC:
       break;
     case ENCODING_ALPHANUMERIC:
-      bit_count += encodeMessageAlphanumeric(string, length, &encoded[ENCODING_LEN + 8 + 1]);
+      bit_count += encodeMessageAlphanumeric(string, length, &encoded[bit_count]);
       break;
     case ENCODING_BYTE:
       break;
@@ -276,14 +295,14 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
 
   /* if there's enough space, add "the" terminator */
   for(uint32_t i = 0; i < min(4, max_len - bit_count); i++) {
-    encoded[bit_count++] = ZERO_SET;
+    encoded[bit_count++] = 0;
   }
 
   printf("bit count after terminator : %d\n", bit_count);
 
   /* add zeroes to make it a multiple of 8 */
   for(uint32_t i = bit_count % 8; i < 8; ++i) {
-    encoded[bit_count++] = ZERO_SET;
+    encoded[bit_count++] = 0;
   }
 
   printf("bit count after 8 rounding : %d\n", bit_count);
@@ -293,12 +312,12 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
   if(remaining_bytes != 0) {
     for(uint32_t needed_pads = remaining_bytes; needed_pads > 0; --needed_pads) {
       if((needed_pads % 2)) {
-        for(uint32_t i=0; i<8; i++) {
-          encoded[bit_count++] = PADDING_PATTERN_1 & (1<<i) ? 1 : ZERO_SET;
+        for(int32_t i=7; i>=0; i--) {
+          encoded[bit_count++] = PADDING_PATTERN_2 & (1<<i) ? 1 : 0;
         }
       } else {
-        for(uint32_t i=0; i<8; i++) {
-          encoded[bit_count++] = PADDING_PATTERN_2 & (1<<i) ? 1 : ZERO_SET;
+        for(int32_t i=7; i>=0; i--) {
+          encoded[bit_count++] = PADDING_PATTERN_1 & (1<<i) ? 1 : 0;
         }
       }
     }
@@ -347,7 +366,7 @@ int main() {
   drawTiming(qrbuffer, 21, VERSION_1);
 
   uint8_t format[FORMAT_LENGTH] = {0};
-  generateFormat(format, EC_LEVEL_Q, MASK_HOR_INTERLEAVE);
+  generateFormat(format, EC_LEVEL_MED, MASK_HOR_INTERLEAVE);
   drawFormat(qrbuffer, format, 21);
 
   initialize_gf256(QRCODE_ECC_MODULO);
@@ -357,9 +376,9 @@ int main() {
    * right now, a single output bit is stored into one byte
    * */
   uint8_t message[1024] = {0};
-  encodeMessage("HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_Q_CODEWORD_COUNT * 8, message);
+  encodeMessage("HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT * 8, message);
 
-  computeECC(message, V1_Q_CODEWORD_COUNT, V1_Q_EC_COUNT, &message[V1_Q_CODEWORD_COUNT * 8]);
+  computeECC(message, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT, &message[V1_M_CODEWORD_COUNT * 8]);
 
   drawData(qrbuffer, message, 21);
 
