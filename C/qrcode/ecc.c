@@ -6,12 +6,14 @@
 #include "galois_helper.h"
 
 #define max(a,b) (a>b?a:b)
+#define MAX_POL_SIZE 68
 
 static uint8_t message_polynome[256];
-static uint8_t generator_polynome[68];
-static uint8_t tmp_generator_polynome[68];
-//static uint8_t tmp_generator_polynome2[68];
-static int16_t tmp_generator_polynome2[68];
+static uint8_t generator_polynome[MAX_POL_SIZE];
+static uint8_t division_generator_polynome[MAX_POL_SIZE];
+static uint8_t tmp_generator_polynome[MAX_POL_SIZE];
+//static uint8_t tmp_generator_polynome2[MAX_POL_SIZE];
+static int16_t tmp_generator_polynome2[MAX_POL_SIZE];
 
 #define print_polynome(pol, size) \
 { \
@@ -46,8 +48,20 @@ static void generateMessagePolynome(const uint8_t *message, const uint32_t lengt
   }
 }
 
+static void convertPolynome_antialpha(uint8_t *polynome, const uint32_t length) {
+  for(uint32_t i1 = 0; i1 < length; ++i1) {
+    polynome[i1] = gf256[polynome[i1]];
+  }
+}
+
+static void convertPolynome_alpha(uint8_t *polynome, const uint32_t length) {
+  for(uint32_t i1 = 0; i1 < length; ++i1) {
+    polynome[i1] = gf256_antilog[polynome[i1]];
+  }
+}
+
 static void multiplyPolynomes(const uint8_t *polynome1, const uint32_t poly1_len, const uint8_t *polynome2, const uint32_t poly2_len) {
-  for(uint32_t i = 0; i<68; ++i) {
+  for(uint32_t i = 0; i<MAX_POL_SIZE; ++i) {
     tmp_generator_polynome2[i] = -1;
   }
 
@@ -67,6 +81,10 @@ static void multiplyPolynomes(const uint8_t *polynome1, const uint32_t poly1_len
   }
 }
 
+/*
+ * TODO: find a way to multiply 2 random sized polynomes while having
+ * the highest exponent being index 0
+ * */
 static void computeGeneratorPolynome(const uint32_t ecc_codeword_count, uint8_t *polynome) {
   polynome[0] = 0; /* alpha 0 */
   polynome[1] = 0; /* alpha 0 */
@@ -82,19 +100,43 @@ static void computeGeneratorPolynome(const uint32_t ecc_codeword_count, uint8_t 
       polynome[copy_idx] = tmp_generator_polynome2[copy_idx];
     }
   }
-  #if 0
-  for(int i=max(len1-1, 2); i>=0; --i) {
-    printf("%dx^%d + ", polynome[i], i);
+  /* unoptimized */
+  for(uint32_t copy_idx = 0; copy_idx < len1; copy_idx++) {
+    polynome[len1-1-copy_idx] = tmp_generator_polynome2[copy_idx];
   }
-  printf("\n");
-  #endif
+  memset(&polynome[len1], 0, 20);
+}
+
+void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_count, uint8_t *generator_polynome, const uint32_t ecc_codeword_count, uint8_t *ecc_output) {
+  /* need to raise the message's polynome by the power of the ecc_codeword_count */
+  uint32_t message_len = data_codeword_count + ecc_codeword_count;
+  /* need to raise the message's polynome by the power of the ecc_codeword_count */
+  print_polynome(message_polynome, message_len);
+  print_polynome(generator_polynome, message_len); /* goes from x^ecc_codeword_count to x^0 */
+  printf("-----\n");
+  for(uint32_t i=0; i<data_codeword_count; ++i) {
+    uint8_t factor = gf256_antilog[message_polynome[i==0?0:1]]; /* highest factor */
+    printf("factor %d\n", factor);
+    for(uint32_t j=0; j<=ecc_codeword_count; j++) {
+      uint16_t tmp = generator_polynome[j] + factor;
+      tmp %= 255;
+      division_generator_polynome[j] = tmp;
+    }
+    convertPolynome_antialpha(division_generator_polynome, ecc_codeword_count+1);
+    print_polynome(division_generator_polynome, message_len);
+    printf("-----\n");
+    for(uint32_t j=0; j<data_codeword_count; j++) {
+      message_polynome[j] = division_generator_polynome[j] ^ message_polynome[j+(i==0?0:1)];
+    }
+    print_polynome(message_polynome, message_len);
+    message_len--;
+  }
 }
 
 void computeECC(const uint8_t *message, const uint32_t data_codeword_count, const uint32_t ecc_codeword_count, uint8_t *ecc_output) {
   generateMessagePolynome(message, data_codeword_count, message_polynome);
   computeGeneratorPolynome(ecc_codeword_count, generator_polynome);
-  print_polynome(generator_polynome, ecc_codeword_count);
 
-  multiplyPolynomes(message_polynome, data_codeword_count, tmp_generator_polynome, ecc_codeword_count);
-  print_polynome(message_polynome, data_codeword_count + ecc_codeword_count);
+
+  computeECC_words(message_polynome, data_codeword_count, generator_polynome, ecc_codeword_count, ecc_output);
 }
