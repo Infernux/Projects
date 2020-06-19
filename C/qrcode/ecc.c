@@ -131,12 +131,17 @@ void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_co
     print_polynome(message_polynome, message_len);
     message_len--;
   }
+
+  uint32_t index = 0;
+  for(uint32_t i = 0; i < ecc_codeword_count; i++) {
+    for(int32_t ind = 7; ind >= 0; --ind) {
+      ecc_output[index++] = message_polynome[i] & (1 << ind) ? 1 : 0;
+    }
+  }
 }
 
 void computeECC(const uint8_t *message, const uint32_t data_codeword_count, const uint32_t ecc_codeword_count, uint8_t *ecc_output) {
   generateMessagePolynome(message, data_codeword_count, message_polynome);
   computeGeneratorPolynome(ecc_codeword_count, generator_polynome);
-
-
   computeECC_words(message_polynome, data_codeword_count, generator_polynome, ecc_codeword_count, ecc_output);
 }
