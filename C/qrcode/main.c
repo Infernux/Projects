@@ -19,6 +19,7 @@
 
 #define FORMAT_LENGTH 15
 
+#define ONE_SET  3
 #define ZERO_SET 2
 #define SEPARATOR_SIZE 1
 
@@ -81,7 +82,7 @@ static uint16_t generateErrorCorrectionBits(const ERROR_CORRECTION_MASK_BITS ecm
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
   uint16_t format = generateErrorCorrectionBits(ERROR_CORRECTION_MASK_BITS_L, mask_type);
   for(uint32_t i=0; i<15; i++) {
-    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? 1 : ZERO_SET;
+    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? ONE_SET : ZERO_SET;
   }
 }
 
@@ -114,37 +115,37 @@ void drawTiming(uint8_t *buf, uint32_t width, VERSION version) {
   uint32_t realEstate = width - 2 * POSITION_MARKER_SIZE;
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = 1;
+      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = ONE_SET;
     } else {
       buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = ZERO_SET;
     }
   }
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = 1;
+      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = ONE_SET;
     } else {
       buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = ZERO_SET;
     }
   }
-  buf[(4 * version + 9) * width + 8] = 1; /* dark module */
+  buf[(4 * version + 9) * width + 8] = ONE_SET; /* dark module */
 }
 
 void drawMarker(uint8_t *buf, uint32_t width) {
-  memset(buf, 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
-  buf[width * 1 + 0] = 1;
+  memset(buf, ONE_SET, sizeof(uint8_t) * POSITION_MARKER_SIZE);
+  buf[width * 1 + 0] = ONE_SET;
   memset(&buf[width * 1 + 1], ZERO_SET, sizeof(uint8_t) * 5);
-  buf[width * 1 + 6] = 1;
+  buf[width * 1 + 6] = ONE_SET;
   for(uint32_t i=0; i<3; ++i) {
-    buf[(width * (2 + i)) + 0] = 1;
+    buf[(width * (2 + i)) + 0] = ONE_SET;
     buf[(width * (2 + i)) + 1] = ZERO_SET;
-    memset(&buf[(width * (2 + i)) + 2], 1, sizeof(uint8_t) * 3);
+    memset(&buf[(width * (2 + i)) + 2], ONE_SET, sizeof(uint8_t) * 3);
     buf[(width * (2 + i)) + 5] = ZERO_SET;
-    buf[(width * (2 + i)) + 6] = 1;
+    buf[(width * (2 + i)) + 6] = ONE_SET;
   }
-  buf[width * 5 + 0] = 1;
+  buf[width * 5 + 0] = ONE_SET;
   memset(&buf[width * 5 + 1], ZERO_SET, sizeof(uint8_t) * 5);
-  buf[width * 5 + 6] = 1;
-  memset(&buf[width * 6], 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
+  buf[width * 5 + 6] = ONE_SET;
+  memset(&buf[width * 6], ONE_SET, sizeof(uint8_t) * POSITION_MARKER_SIZE);
 }
 
 void setPositionMarker(uint8_t *buf, uint32_t width) {
