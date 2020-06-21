@@ -15,6 +15,7 @@ add_executable(
   ecc.c
   galois_helper.c
   image_dump_tools.c
+  mask.c
   message_encoding_helpers.c
 )
 
