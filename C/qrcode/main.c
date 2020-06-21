@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-//#include "bit_debug.h"
 #include "ecc.h"
 #include "galois_helper.h"
 #include "image_dump_tools.h"
+#include "message_encoding_helpers.h"
 #include "qrcode_constants.h"
 
 #define pp(m, count) \
@@ -229,74 +229,6 @@ static void setPlaceHolderSeparators(uint8_t *buf, uint32_t width) {
   }
 }
 
-static inline uint8_t convertCharToAlphanumeric(const char character) {
-    char res = character;
-
-    if(character >= 48 && character <= 57) {
-      res -= 48;
-    } else if (character >= 65 && character <= 90) {
-      res -= 55;
-    } else {
-      switch(character) {
-        case ' ':
-          res = 36;
-          break;
-        case '$':
-          res = 37;
-          break;
-        case '%':
-          res = 38;
-          break;
-        case '*':
-          res = 39;
-          break;
-        case '+':
-          res = 40;
-          break;
-        case '-':
-          res = 41;
-          break;
-        case '.':
-          res = 42;
-          break;
-        case '/':
-          res = 43;
-          break;
-        case ':':
-          res = 44;
-          break;
-        default:
-          printf("Invalid character %d (%c)\n", character, character);
-          break;
-      }
-    }
-
-    return res;
-}
-
-/* encode by pairs */
-static uint32_t encodeMessageAlphanumeric(const char *string, const uint32_t length, uint8_t *encoded) {
-  uint32_t i = 0;
-  uint32_t index = 0;
-  for(i = 0; i < length-1; i+=2) {
-    uint8_t char1 = convertCharToAlphanumeric(string[i]);
-    uint8_t char2 = convertCharToAlphanumeric(string[i+1]);
-    uint16_t charpair = char1 * 45 + char2; /* 45 is the maximum char */
-    //printf("c1 %c, c2 %c -> %d\n", string[i], string[i+1], charpair);
-    for(int32_t ind = 10; ind >= 0; --ind) {
-      encoded[index++] = charpair & (1 << ind) ? 1 : 0;
-    }
-  }
-  if(length % 2) { /* rest : length % 2 != 0 */
-    uint8_t char1 = convertCharToAlphanumeric(string[i]);
-    for(int32_t ind = 5; ind >= 0; --ind) {
-      encoded[index++] = char1 & (1 << ind) ? 1 : 0;
-    }
-  }
-
-  return index;
-}
-
 void encodeMessage(const char *string, const uint32_t length, const ENCODING encoding, const uint32_t max_len, uint8_t *encoded) {
   uint32_t bit_count = 0;
   encoded[bit_count++] = encoding & 8 ? 1 : 0;
@@ -467,7 +399,7 @@ static void drawPlaceholders(uint8_t *qrbuffer, const uint32_t width, const VERS
 
   /* spacings */
   setPlaceHolderSeparators(qrbuffer, width);
-  
+
   /* format */
   drawFormatPlaceholder(qrbuffer, width);
 
@@ -546,12 +478,11 @@ int main() {
 #if 1
   memset(message_buffer, 0, 1024);
   //encodeMessageAndECC(message_buffer, "ABCDE123", 8, ENCODING_ALPHANUMERIC, V1_H_CODEWORD_COUNT, V1_H_EC_COUNT);
-  encodeMessageAndECC(message_buffer, "FINALLY", 7, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
+  encodeMessageAndECC(message_buffer, "BONJOUR", 7, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
 
   drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
   maskData(qrbuffer, width, mask_type);
   drawRealFixed(qrbuffer, width, version, eclevel, mask_type);
-  //drawPlaceholders(qrbuffer, width, version);
   saveAsTextPbm("image.pbm", qrbuffer, COMPUTE_SIZE(version), COMPUTE_SIZE(version), RESIZE_FACTOR);
 #else
   debugDrawData(width, version);
