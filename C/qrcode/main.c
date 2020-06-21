@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bit_debug.h"
+//#include "bit_debug.h"
 #include "ecc.h"
 #include "galois_helper.h"
 #include "image_dump_tools.h"
@@ -27,6 +27,9 @@
 #define PADDING_PATTERN_2 0x11
 
 #define min(a,b) (a<b?a:b)
+
+static void drawData(uint8_t *buf, const uint8_t *message, const uint32_t width);
+static void drawPlaceholders(uint8_t *qrbuffer, const uint32_t width, const VERSION version);
 
 static uint32_t get_significant_bit_count(uint32_t val, uint32_t max_length)
 {
@@ -75,6 +78,21 @@ static uint16_t generateErrorCorrectionBits(const ERROR_CORRECTION_MASK_BITS ecm
   base_ecb += ecb;
   base_ecb = base_ecb ^ ERROR_CORRECTION_BIT_XOR_MASK;
   return base_ecb;
+}
+
+void debugDrawData(const uint32_t width, const uint32_t version) {
+  uint8_t message_buffer[1024] = {0};
+  char path[100];
+  memset(message_buffer, 0, 1024);
+  for(int i=0; i<208; ++i) {
+    sprintf(path, "dump/image_%03d.ppm", i);
+    message_buffer[i] = 1;
+    drawPlaceholders(qrbuffer, width, version);
+    drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
+    saveAsTextPbm(path, qrbuffer, COMPUTE_SIZE(version), COMPUTE_SIZE(version), RESIZE_FACTOR);
+
+    memset(qrbuffer, 0, sizeof(uint8_t) * COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1));
+  }
 }
 
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
@@ -375,7 +393,7 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
 
 static void drawData(uint8_t *buf, const uint8_t *message, const uint32_t width) {
   uint32_t index = 0;
-  uint32_t x = 0;
+  uint8_t direction = 1;
   for(uint32_t x = 0; x < width - 1; x+=2) {
     if(x == (width - POSITION_MARKER_SIZE)) {
       /* skip timing */
@@ -383,32 +401,32 @@ static void drawData(uint8_t *buf, const uint8_t *message, const uint32_t width)
     }
 
     uint32_t startPoint = 0;
-    if(x % 4) {
+    if(direction == 0) {
       startPoint = width - x - 1;
       for(uint32_t y = 0; y < width; y++) {
         for(uint32_t xind = 0; xind < 2; xind++) {
           if(buf[startPoint + (y*width) - xind] == 0) {
-            buf[startPoint + (y*width) - xind] = message[index];
-            index++;
+            buf[startPoint + (y*width) - xind] = message[index++];
           }
         }
       }
+      direction = !direction;
     } else {
       startPoint = (width * width) - x - 1;
       for(uint32_t y = 0; y < width; y++) {
         for(uint32_t xind = 0; xind < 2; xind++) {
           if(buf[startPoint - (y*width) - xind] == 0) {
-            buf[startPoint - (y*width) - xind] = message[index];
-            index++;
+            buf[startPoint - (y*width) - xind] = message[index++];
           }
         }
       }
+      direction = !direction;
     }
   }
   printf("Drew : %d\n", index);
 }
 
-void drawPlaceholderMarker(uint8_t *qrbuffer, uint32_t width) {
+static void drawPlaceholderMarker(uint8_t *qrbuffer, uint32_t width) {
   memset(qrbuffer, ZERO_SET, POSITION_MARKER_SIZE);
   memset(&qrbuffer[width*1], ZERO_SET, POSITION_MARKER_SIZE);
   memset(&qrbuffer[width*2], ZERO_SET, POSITION_MARKER_SIZE);
@@ -451,7 +469,7 @@ void drawFormatPlaceholder(uint8_t *qrqrbufferfer, const uint32_t width) {
   }
 }
 
-void drawPlaceholders(uint8_t *qrbuffer, const uint32_t width, const VERSION version) {
+static void drawPlaceholders(uint8_t *qrbuffer, const uint32_t width, const VERSION version) {
   /* finders */
   drawPlaceholderMarker(qrbuffer, width);
   drawPlaceholderMarker(&qrbuffer[width-POSITION_MARKER_SIZE], width);
@@ -538,13 +556,13 @@ void encodeMessageAndECC(uint8_t *message_buffer, const char *message_to_encode,
   message_buffer[(codeword_count+7) * 8 + 7] = 0;
 
   message_buffer[(codeword_count+8) * 8 + 0] = 0;
-  message_buffer[(codeword_count+8) * 8 + 1] = 0;
+  message_buffer[(codeword_count+8) * 8 + 1] = 1;
   message_buffer[(codeword_count+8) * 8 + 2] = 0;
   message_buffer[(codeword_count+8) * 8 + 3] = 1;
-  message_buffer[(codeword_count+8) * 8 + 4] = 0;
-  message_buffer[(codeword_count+8) * 8 + 5] = 0;
+  message_buffer[(codeword_count+8) * 8 + 4] = 1;
+  message_buffer[(codeword_count+8) * 8 + 5] = 1;
   message_buffer[(codeword_count+8) * 8 + 6] = 0;
-  message_buffer[(codeword_count+8) * 8 + 7] = 0;
+  message_buffer[(codeword_count+8) * 8 + 7] = 1;
 
   message_buffer[(codeword_count+9) * 8 + 0] = 0;
   message_buffer[(codeword_count+9) * 8 + 1] = 0;
@@ -613,6 +631,7 @@ int main() {
    * right now, a single output bit is stored into one byte
    * */
   uint8_t message_buffer[1024] = {0};
+#if 1
   memset(message_buffer, 0, 1024);
   //encodeMessageAndECC(message_buffer, "ABCDE123", 8, ENCODING_ALPHANUMERIC, V1_H_CODEWORD_COUNT, V1_H_EC_COUNT);
   encodeMessageAndECC(message_buffer, "HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
@@ -621,7 +640,9 @@ int main() {
   maskData(qrbuffer, width, mask_type);
   drawRealFixed(qrbuffer, width, version, eclevel, mask_type);
   //drawPlaceholders(qrbuffer, width, version);
-
-  saveAsTextPbm("image.ppm", qrbuffer, COMPUTE_SIZE(version), COMPUTE_SIZE(version), RESIZE_FACTOR);
+  saveAsTextPbm("image.pbm", qrbuffer, COMPUTE_SIZE(version), COMPUTE_SIZE(version), RESIZE_FACTOR);
+#else
+  debugDrawData(width, version);
+#endif
   return 0;
 }

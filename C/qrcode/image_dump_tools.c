@@ -150,6 +150,8 @@ int saveAsTextPgm(const char *path, const uint8_t *image, const int width, const
   fclose(f);
 }
 
+#define MARGIN 4
+
 int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const int height, const uint32_t resize_factor)
 {
   FILE *f = fopen(path, "w");
@@ -160,12 +162,23 @@ int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const
   }
 
   fprintf(f, "P1\n");
-  fprintf(f, "%d %d\n", width * resize_factor, height * resize_factor);
+  fprintf(f, "%d %d\n", (width + MARGIN * 2) * resize_factor, (height + MARGIN * 2) * resize_factor);
 
   unsigned int x, y;
   unsigned int real_x = 0, real_y = 0;
+  for(y=0; y<(MARGIN*resize_factor); ++y)
+  {
+    for(x=0; x<(width + MARGIN * 2) * resize_factor; ++x)
+    {
+      fprintf(f, "%01d ", 0);
+    }
+  }
   for(y=0; y<height * resize_factor; ++y)
   {
+    for(x=0; x<(MARGIN*resize_factor); ++x)
+    {
+      fprintf(f, "%01d ", 0);
+    }
     for(x=0; x<width * resize_factor; ++x)
     {
       fprintf(f, "%01d ", image[((y/resize_factor) * width) + (x/resize_factor)] == 1 ? 1 : 0);
@@ -173,9 +186,20 @@ int saveAsTextPbm(const char *path, const uint8_t *image, const int width, const
         real_x++;
       }
     }
+    for(x=0; x<(MARGIN*resize_factor); ++x)
+    {
+      fprintf(f, "%01d ", 0);
+    }
     fprintf(f, "\n");
     if(y % resize_factor == (resize_factor - 1)) {
       real_y++;
+    }
+  }
+  for(y=0; y<(MARGIN*resize_factor); ++y)
+  {
+    for(x=0; x<(width + MARGIN * 2) * resize_factor; ++x)
+    {
+      fprintf(f, "%01d ", 0);
     }
   }
 
