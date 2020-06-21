@@ -259,11 +259,20 @@ static inline uint8_t convertCharToAlphanumeric(const char character) {
       case 'E':
         res = 14;
         break;
+      case 'F':
+        res = 15;
+        break;
       case 'H':
         res = 17;
         break;
+      case 'I':
+        res = 18;
+        break;
       case 'L':
         res = 21;
+        break;
+      case 'N':
+        res = 23;
         break;
       case 'O':
         res = 24;
@@ -273,6 +282,9 @@ static inline uint8_t convertCharToAlphanumeric(const char character) {
         break;
       case 'W':
         res = 32;
+        break;
+      case 'Y':
+        res = 34;
         break;
       case ' ':
         res = 36;
@@ -499,84 +511,6 @@ void encodeMessageAndECC(uint8_t *message_buffer, const char *message_to_encode,
   encodeMessage(message_to_encode, message_length, encoding, codeword_count * 8, message_buffer);
 
   computeECC(message_buffer, codeword_count, ecc_count, &message_buffer[codeword_count * 8]);
-  #define HACK
-  #ifdef HACK
-  message_buffer[codeword_count * 8 + 0] = 1;
-  message_buffer[codeword_count * 8 + 1] = 1;
-  message_buffer[codeword_count * 8 + 2] = 0;
-  message_buffer[codeword_count * 8 + 3] = 0;
-  message_buffer[codeword_count * 8 + 4] = 0;
-  message_buffer[codeword_count * 8 + 5] = 1;
-  message_buffer[codeword_count * 8 + 6] = 0;
-  message_buffer[codeword_count * 8 + 7] = 0;
-
-  message_buffer[(codeword_count+1) * 8 + 0] = 0;
-  message_buffer[(codeword_count+1) * 8 + 1] = 0;
-  message_buffer[(codeword_count+1) * 8 + 2] = 1;
-  message_buffer[(codeword_count+1) * 8 + 3] = 0;
-  message_buffer[(codeword_count+1) * 8 + 4] = 0;
-  message_buffer[(codeword_count+1) * 8 + 5] = 0;
-  message_buffer[(codeword_count+1) * 8 + 6] = 1;
-  message_buffer[(codeword_count+1) * 8 + 7] = 1;
-
-  message_buffer[(codeword_count+2) * 8 + 0] = 0;
-  message_buffer[(codeword_count+2) * 8 + 1] = 0;
-  message_buffer[(codeword_count+2) * 8 + 2] = 1;
-  message_buffer[(codeword_count+2) * 8 + 3] = 0;
-  message_buffer[(codeword_count+2) * 8 + 4] = 0;
-  message_buffer[(codeword_count+2) * 8 + 5] = 1;
-  message_buffer[(codeword_count+2) * 8 + 6] = 1;
-  message_buffer[(codeword_count+2) * 8 + 7] = 1;
-
-  message_buffer[(codeword_count+3) * 8 + 0] = 0;
-  message_buffer[(codeword_count+3) * 8 + 1] = 1;
-  message_buffer[(codeword_count+3) * 8 + 2] = 1;
-  message_buffer[(codeword_count+3) * 8 + 3] = 1;
-  message_buffer[(codeword_count+3) * 8 + 4] = 0;
-  message_buffer[(codeword_count+3) * 8 + 5] = 1;
-  message_buffer[(codeword_count+3) * 8 + 6] = 1;
-  message_buffer[(codeword_count+3) * 8 + 7] = 1;
-
-  message_buffer[(codeword_count+6) * 8 + 0] = 1;
-  message_buffer[(codeword_count+6) * 8 + 1] = 1;
-  message_buffer[(codeword_count+6) * 8 + 2] = 1;
-  message_buffer[(codeword_count+6) * 8 + 3] = 0;
-  message_buffer[(codeword_count+6) * 8 + 4] = 0;
-  message_buffer[(codeword_count+6) * 8 + 5] = 1;
-  message_buffer[(codeword_count+6) * 8 + 6] = 1;
-  message_buffer[(codeword_count+6) * 8 + 7] = 1;
-
-  message_buffer[(codeword_count+7) * 8 + 0] = 1;
-  message_buffer[(codeword_count+7) * 8 + 1] = 1;
-  message_buffer[(codeword_count+7) * 8 + 2] = 1;
-  message_buffer[(codeword_count+7) * 8 + 3] = 0;
-  message_buffer[(codeword_count+7) * 8 + 4] = 0;
-  message_buffer[(codeword_count+7) * 8 + 5] = 0;
-  message_buffer[(codeword_count+7) * 8 + 6] = 1;
-  message_buffer[(codeword_count+7) * 8 + 7] = 0;
-
-  message_buffer[(codeword_count+8) * 8 + 0] = 0;
-  message_buffer[(codeword_count+8) * 8 + 1] = 1;
-  message_buffer[(codeword_count+8) * 8 + 2] = 0;
-  message_buffer[(codeword_count+8) * 8 + 3] = 1;
-  message_buffer[(codeword_count+8) * 8 + 4] = 1;
-  message_buffer[(codeword_count+8) * 8 + 5] = 1;
-  message_buffer[(codeword_count+8) * 8 + 6] = 0;
-  message_buffer[(codeword_count+8) * 8 + 7] = 1;
-
-  message_buffer[(codeword_count+9) * 8 + 0] = 0;
-  message_buffer[(codeword_count+9) * 8 + 1] = 0;
-  message_buffer[(codeword_count+9) * 8 + 2] = 0;
-  message_buffer[(codeword_count+9) * 8 + 3] = 1;
-  message_buffer[(codeword_count+9) * 8 + 4] = 0;
-  message_buffer[(codeword_count+9) * 8 + 5] = 1;
-  message_buffer[(codeword_count+9) * 8 + 6] = 1;
-  message_buffer[(codeword_count+9) * 8 + 7] = 1;
-  #endif
-  for(int i=0; i<8; ++i) {
-    printf("%d ", message_buffer[codeword_count * 8 + i]);
-  }
-  printf("\n");
 }
 
 void maskData(uint8_t *qrbuffer, const uint32_t width, MASK_TYPE mask_type) {
@@ -634,7 +568,7 @@ int main() {
 #if 1
   memset(message_buffer, 0, 1024);
   //encodeMessageAndECC(message_buffer, "ABCDE123", 8, ENCODING_ALPHANUMERIC, V1_H_CODEWORD_COUNT, V1_H_EC_COUNT);
-  encodeMessageAndECC(message_buffer, "HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
+  encodeMessageAndECC(message_buffer, "FINALLY", 7, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
 
   drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
   maskData(qrbuffer, width, mask_type);

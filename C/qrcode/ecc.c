@@ -141,8 +141,10 @@ void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_co
   uint32_t index = 0;
   for(uint32_t i = 0; i < ecc_codeword_count; i++) {
     for(int32_t ind = 0; ind < 8; ++ind) {
-      ecc_output[index++] = (message_polynome[ecc_codeword_count - i] & (1 << ind)) ? 1 : 0;
+      ecc_output[index++] = (message_polynome[i+1] & (1 << (7-ind))) ? 1 : 0;
+      printf("%d", ecc_output[index-1]);
     }
+    printf("\n");
   }
 }
 
