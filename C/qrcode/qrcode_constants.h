@@ -30,14 +30,14 @@ typedef enum EC_LEVEL_ {
 } EC_LEVEL;
 
 typedef enum MASK_TYPE_ {
-  MASK_1=0,
-  MASK_2,
-  MASK_3,
-  MASK_4,
-  MASK_HOR_INTERLEAVE,
-  MASK_CHECKERBOARD,
-  MASK_DIAGONAL_WAVE,
-  MASK_VERTICAL_INTERLEAVE /* j % 3 == 0 */
+  MASK_1=0, /* (i+j) % 2 == 0 */
+  MASK_2, /* j % 2 == 0 */
+  MASK_3, /* x % 3 == 0 */
+  MASK_4, /* (i+j) % 3 == 0 */
+  MASK_HOR_INTERLEAVE, /* (floor(j/2) + floor(i/3) % 2) == 0 */
+  MASK_CHECKERBOARD, /* (((i*j) % 2) + ((i*j)%3)) == 0 */
+  MASK_DIAGONAL_WAVE, /* (((i*j)%2)+(i*j)%3)%2 == 0*/
+  MASK_VERTICAL_INTERLEAVE /* (((i*j)%2)+((i*j)%3))%2 == 0 */
 } MASK_TYPE;
 
 typedef enum ERROR_CORRECTION_MASK_BITS_ {

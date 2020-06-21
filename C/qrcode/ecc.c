@@ -8,6 +8,8 @@
 #define max(a,b) (a>b?a:b)
 #define MAX_POL_SIZE 68
 
+#define DEBUG_POLYNOME
+
 static uint8_t message_polynome[256];
 static uint8_t generator_polynome[MAX_POL_SIZE];
 static uint8_t division_generator_polynome[MAX_POL_SIZE];
@@ -111,8 +113,8 @@ void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_co
   /* need to raise the message's polynome by the power of the ecc_codeword_count */
   uint32_t message_len = data_codeword_count + ecc_codeword_count;
   /* need to raise the message's polynome by the power of the ecc_codeword_count */
-  print_polynome(message_polynome, message_len);
-  print_polynome(generator_polynome, message_len); /* goes from x^ecc_codeword_count to x^0 */
+  //print_polynome(message_polynome, message_len);
+  //print_polynome(generator_polynome, message_len); /* goes from x^ecc_codeword_count to x^0 */
   printf("-----\n");
   for(uint32_t i=0; i<data_codeword_count; ++i) {
     uint8_t factor = gf256_antilog[message_polynome[i==0?0:1]]; /* highest factor */
@@ -123,25 +125,31 @@ void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_co
       division_generator_polynome[j] = tmp;
     }
     convertPolynome_antialpha(division_generator_polynome, ecc_codeword_count+1);
+#ifdef DEBUG_POLYNOME
     print_polynome(division_generator_polynome, message_len);
     printf("-----\n");
+#endif
     for(uint32_t j=0; j<data_codeword_count; j++) {
       message_polynome[j] = division_generator_polynome[j] ^ message_polynome[j+(i==0?0:1)];
     }
+#ifdef DEBUG_POLYNOME
     print_polynome(message_polynome, message_len);
+#endif
     message_len--;
   }
 
   uint32_t index = 0;
   for(uint32_t i = 0; i < ecc_codeword_count; i++) {
-    for(int32_t ind = 7; ind >= 0; --ind) {
-      ecc_output[index++] = message_polynome[i] & (1 << ind) ? 1 : 0;
+    for(int32_t ind = 0; ind < 8; ++ind) {
+      ecc_output[index++] = (message_polynome[ecc_codeword_count - i] & (1 << ind)) ? 1 : 0;
     }
   }
 }
 
 void computeECC(const uint8_t *message, const uint32_t data_codeword_count, const uint32_t ecc_codeword_count, uint8_t *ecc_output) {
   generateMessagePolynome(message, data_codeword_count, message_polynome);
+  print_polynome(message_polynome, data_codeword_count);
   computeGeneratorPolynome(ecc_codeword_count, generator_polynome);
+  print_polynome(generator_polynome, ecc_codeword_count+1);
   computeECC_words(message_polynome, data_codeword_count, generator_polynome, ecc_codeword_count, ecc_output);
 }

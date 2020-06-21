@@ -54,8 +54,6 @@ static uint32_t get_significant_bit_count(uint32_t val, uint32_t max_length)
 
 #define RESIZE_FACTOR 20
 
-
-
 #define ENCODING_LEN 4
 
 static uint8_t qrbuffer[COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1)];
@@ -80,34 +78,53 @@ static uint16_t generateErrorCorrectionBits(const ERROR_CORRECTION_MASK_BITS ecm
 }
 
 void generateFormat(uint8_t *info, EC_LEVEL ec_level, MASK_TYPE mask_type) {
-  uint16_t format = generateErrorCorrectionBits(ERROR_CORRECTION_MASK_BITS_L, mask_type);
-  for(uint32_t i=0; i<15; i++) {
-    info[i] = (format & 1<<((FORMAT_LENGTH-1)-i)) ? ONE_SET : ZERO_SET;
+  ERROR_CORRECTION_MASK_BITS ec_mask;
+  switch(ec_level) {
+    case EC_LEVEL_MED:
+      ec_mask = ERROR_CORRECTION_MASK_BITS_M;
+      break;
+    case EC_LEVEL_Q:
+      ec_mask = ERROR_CORRECTION_MASK_BITS_Q;
+      break;
+    case EC_LEVEL_HIGH:
+      ec_mask = ERROR_CORRECTION_MASK_BITS_H;
+      break;
+    case EC_LEVEL_LOW:
+      ec_mask = ERROR_CORRECTION_MASK_BITS_L;
+      break;
   }
+  printf("error %d\n", ec_mask);
+  uint16_t format = generateErrorCorrectionBits(ec_mask, mask_type);
+  #if 1
+  for(uint32_t i=0; i<15; i++) {
+    info[i] = (format & (1<<i)) ? 1 : 0;
+  }
+  printf("format %d\n", format);
+  #endif
 }
 
 void drawFormat(uint8_t *buf, const uint8_t *info, uint32_t width) {
   /* top left */
-  uint32_t info_index = FORMAT_LENGTH-1;
+  uint32_t info_index = 0;
   for(uint32_t i=0; i<6; ++i) {
-    buf[(i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index--];
+    buf[(i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index++];
   }
-  buf[(POSITION_MARKER_SIZE * width + (POSITION_MARKER_SIZE+1))] = info[info_index--];
-  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE+1))] = info[info_index--];
-  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE))] = info[info_index--];
+  buf[(POSITION_MARKER_SIZE * width + (POSITION_MARKER_SIZE+1))] = info[info_index++];
+  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE+1))] = info[info_index++];
+  buf[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE))] = info[info_index++];
 
   for(int32_t i=5; i>=0; --i) {
     buf[(POSITION_MARKER_SIZE + 1) * width + i] = info[info_index];
-    info_index--;
+    info_index++;
   }
 
   /* bottom left && top right */
-  info_index = 0;
+  info_index = FORMAT_LENGTH-1;
   for(uint32_t i=0; i<7; ++i) {
-    buf[(width - 1 - i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index++];
+    buf[(width - 1 - i) * width + (POSITION_MARKER_SIZE + 1)] = info[info_index--];
   }
   for(uint32_t i=0; i<8; ++i) {
-    buf[(POSITION_MARKER_SIZE + 2) * width - (POSITION_MARKER_SIZE + 1) + i] = info[info_index++];
+    buf[(POSITION_MARKER_SIZE + 2) * width - (POSITION_MARKER_SIZE + 1) + i] = info[info_index--];
   }
 }
 
@@ -115,46 +132,66 @@ void drawTiming(uint8_t *buf, uint32_t width, VERSION version) {
   uint32_t realEstate = width - 2 * POSITION_MARKER_SIZE;
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = ONE_SET;
+      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = 1;
     } else {
-      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = ZERO_SET;
+      buf[(width * 6) + (POSITION_MARKER_SIZE + i)] = 0;
     }
   }
   for(uint32_t i=0; i<realEstate; ++i) {
     if(i & 1) {
-      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = ONE_SET;
+      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = 1;
     } else {
-      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = ZERO_SET;
+      buf[(width * (POSITION_MARKER_SIZE + i)) + 6] = 0;
     }
   }
-  buf[(4 * version + 9) * width + 8] = ONE_SET; /* dark module */
+  buf[(4 * version + 9) * width + 8] = 1; /* dark module */
 }
 
 void drawMarker(uint8_t *buf, uint32_t width) {
-  memset(buf, ONE_SET, sizeof(uint8_t) * POSITION_MARKER_SIZE);
-  buf[width * 1 + 0] = ONE_SET;
-  memset(&buf[width * 1 + 1], ZERO_SET, sizeof(uint8_t) * 5);
-  buf[width * 1 + 6] = ONE_SET;
+  memset(buf, 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
+  buf[width * 1 + 0] = 1;
+  memset(&buf[width * 1 + 1], 0, sizeof(uint8_t) * 5);
+  buf[width * 1 + 6] = 1;
   for(uint32_t i=0; i<3; ++i) {
-    buf[(width * (2 + i)) + 0] = ONE_SET;
-    buf[(width * (2 + i)) + 1] = ZERO_SET;
-    memset(&buf[(width * (2 + i)) + 2], ONE_SET, sizeof(uint8_t) * 3);
-    buf[(width * (2 + i)) + 5] = ZERO_SET;
-    buf[(width * (2 + i)) + 6] = ONE_SET;
+    buf[(width * (2 + i)) + 0] = 1;
+    buf[(width * (2 + i)) + 1] = 0;
+    memset(&buf[(width * (2 + i)) + 2], 1, sizeof(uint8_t) * 3);
+    buf[(width * (2 + i)) + 5] = 0;
+    buf[(width * (2 + i)) + 6] = 1;
   }
-  buf[width * 5 + 0] = ONE_SET;
-  memset(&buf[width * 5 + 1], ZERO_SET, sizeof(uint8_t) * 5);
-  buf[width * 5 + 6] = ONE_SET;
-  memset(&buf[width * 6], ONE_SET, sizeof(uint8_t) * POSITION_MARKER_SIZE);
+  buf[width * 5 + 0] = 1;
+  memset(&buf[width * 5 + 1], 0, sizeof(uint8_t) * 5);
+  buf[width * 5 + 6] = 1;
+  memset(&buf[width * 6], 1, sizeof(uint8_t) * POSITION_MARKER_SIZE);
 }
 
-void setPositionMarker(uint8_t *buf, uint32_t width) {
+void setPositionMarker(uint8_t *buf, const uint32_t width) {
   drawMarker(buf, width);
   drawMarker(&buf[width-POSITION_MARKER_SIZE], width);
   drawMarker(&buf[(width-POSITION_MARKER_SIZE) * width], width);
 }
 
 static void setSeparators(uint8_t *buf, uint32_t width) {
+  /* top left */
+  memset(&buf[POSITION_MARKER_SIZE * width], 0, POSITION_MARKER_SIZE+1);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(i*width) + (POSITION_MARKER_SIZE)] = 0;
+  }
+
+  /* top right */
+  memset(&buf[POSITION_MARKER_SIZE * width + (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)], 0, POSITION_MARKER_SIZE+SEPARATOR_SIZE);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(i*width) + (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)] = 0;
+  }
+
+  /* bottom left */
+  memset(&buf[width * (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE)], 0, POSITION_MARKER_SIZE+SEPARATOR_SIZE);
+  for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
+    buf[(width * (width - POSITION_MARKER_SIZE - SEPARATOR_SIZE + i)) + (POSITION_MARKER_SIZE)] = 0;
+  }
+}
+
+static void setPlaceHolderSeparators(uint8_t *buf, uint32_t width) {
   /* top left */
   memset(&buf[POSITION_MARKER_SIZE * width], ZERO_SET, POSITION_MARKER_SIZE+1);
   for(uint32_t i=0; i<(POSITION_MARKER_SIZE + SEPARATOR_SIZE); ++i) {
@@ -223,7 +260,7 @@ static inline uint8_t convertCharToAlphanumeric(const char character) {
         res = 36;
         break;
       default:
-        printf("Invalid character %c\n", character);
+        printf("Invalid character %d (%c)\n", character, character);
         break;
     }
     return res;
@@ -237,11 +274,12 @@ static uint32_t encodeMessageAlphanumeric(const char *string, const uint32_t len
     uint8_t char1 = convertCharToAlphanumeric(string[i]);
     uint8_t char2 = convertCharToAlphanumeric(string[i+1]);
     uint16_t charpair = char1 * 45 + char2; /* 45 is the maximum char */
+    //printf("c1 %c, c2 %c -> %d\n", string[i], string[i+1], charpair);
     for(int32_t ind = 10; ind >= 0; --ind) {
       encoded[index++] = charpair & (1 << ind) ? 1 : 0;
     }
   }
-  if(length - index) { /* length % 2 != 0 */
+  if(length % 2) { /* rest : length % 2 != 0 */
     uint8_t char1 = convertCharToAlphanumeric(string[i]);
     for(int32_t ind = 5; ind >= 0; --ind) {
       encoded[index++] = char1 & (1 << ind) ? 1 : 0;
@@ -324,6 +362,15 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
     }
   }
   printf("bit count after padding : %d\n", bit_count);
+
+#if 0
+  for(uint32_t i = 0; i<bit_count; ++i) {
+    if(i%8==0)
+      printf(" ");
+    printf("%d", encoded[i]);
+  }
+  printf("\n");
+#endif
 }
 
 static void drawData(uint8_t *buf, const uint8_t *message, const uint32_t width) {
@@ -358,31 +405,223 @@ static void drawData(uint8_t *buf, const uint8_t *message, const uint32_t width)
       }
     }
   }
+  printf("Drew : %d\n", index);
+}
+
+void drawPlaceholderMarker(uint8_t *qrbuffer, uint32_t width) {
+  memset(qrbuffer, ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*1], ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*2], ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*3], ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*4], ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*5], ZERO_SET, POSITION_MARKER_SIZE);
+  memset(&qrbuffer[width*6], ZERO_SET, POSITION_MARKER_SIZE);
+}
+
+void drawPlaceholderTimings(uint8_t *qrbuffer, const uint32_t width, const VERSION version) {
+  uint32_t realEstate = width - 2 * POSITION_MARKER_SIZE;
+  for(uint32_t i=0; i<realEstate; ++i) {
+    qrbuffer[(width * 6) + (POSITION_MARKER_SIZE + i)] = ZERO_SET;
+  }
+  for(uint32_t i=0; i<realEstate; ++i) {
+    qrbuffer[(width * (POSITION_MARKER_SIZE + i)) + 6] = ZERO_SET;
+  }
+  qrbuffer[(4 * version + 9) * width + 8] = ZERO_SET; /* dark module */
+}
+
+void drawFormatPlaceholder(uint8_t *qrqrbufferfer, const uint32_t width) {
+  /* top left */
+  for(uint32_t i=0; i<6; ++i) {
+    qrbuffer[(i) * width + (POSITION_MARKER_SIZE + 1)] = ZERO_SET;
+  }
+  qrbuffer[(POSITION_MARKER_SIZE * width + (POSITION_MARKER_SIZE+1))] = ZERO_SET;
+  qrbuffer[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE+1))] = ZERO_SET;
+  qrbuffer[((POSITION_MARKER_SIZE+1) * width + (POSITION_MARKER_SIZE))] = ZERO_SET;
+
+  for(int32_t i=5; i>=0; --i) {
+    qrbuffer[(POSITION_MARKER_SIZE + 1) * width + i] = ZERO_SET;
+  }
+
+  /* bottom left && top right */
+  for(uint32_t i=0; i<7; ++i) {
+    qrbuffer[(width - 1 - i) * width + (POSITION_MARKER_SIZE + 1)] = ZERO_SET;
+  }
+  for(uint32_t i=0; i<8; ++i) {
+    qrbuffer[(POSITION_MARKER_SIZE + 2) * width - (POSITION_MARKER_SIZE + 1) + i] = ZERO_SET;
+  }
+}
+
+void drawPlaceholders(uint8_t *qrbuffer, const uint32_t width, const VERSION version) {
+  /* finders */
+  drawPlaceholderMarker(qrbuffer, width);
+  drawPlaceholderMarker(&qrbuffer[width-POSITION_MARKER_SIZE], width);
+  drawPlaceholderMarker(&qrbuffer[(width-POSITION_MARKER_SIZE) * width], width);
+
+  /* spacings */
+  setPlaceHolderSeparators(qrbuffer, width);
+  
+  /* format */
+  drawFormatPlaceholder(qrbuffer, width);
+
+  /* timings */
+  drawPlaceholderTimings(qrbuffer, width, version);
+}
+
+void drawRealFixed(uint8_t *qrbuffer, const uint32_t width, const VERSION version, const EC_LEVEL ec_level, const MASK_TYPE masktype) {
+  setPositionMarker(qrbuffer, width);
+  setSeparators(qrbuffer, width);
+  drawTiming(qrbuffer, width, version);
+
+  uint8_t format[FORMAT_LENGTH] = {0};
+  generateFormat(format, ec_level, masktype);
+  drawFormat(qrbuffer, format, width);
+}
+
+void encodeMessageAndECC(uint8_t *message_buffer, const char *message_to_encode, const uint32_t message_length, const ENCODING encoding, const uint32_t codeword_count, const uint32_t ecc_count) {
+  encodeMessage(message_to_encode, message_length, encoding, codeword_count * 8, message_buffer);
+
+  computeECC(message_buffer, codeword_count, ecc_count, &message_buffer[codeword_count * 8]);
+  #define HACK
+  #ifdef HACK
+  message_buffer[codeword_count * 8 + 0] = 1;
+  message_buffer[codeword_count * 8 + 1] = 1;
+  message_buffer[codeword_count * 8 + 2] = 0;
+  message_buffer[codeword_count * 8 + 3] = 0;
+  message_buffer[codeword_count * 8 + 4] = 0;
+  message_buffer[codeword_count * 8 + 5] = 1;
+  message_buffer[codeword_count * 8 + 6] = 0;
+  message_buffer[codeword_count * 8 + 7] = 0;
+
+  message_buffer[(codeword_count+1) * 8 + 0] = 0;
+  message_buffer[(codeword_count+1) * 8 + 1] = 0;
+  message_buffer[(codeword_count+1) * 8 + 2] = 1;
+  message_buffer[(codeword_count+1) * 8 + 3] = 0;
+  message_buffer[(codeword_count+1) * 8 + 4] = 0;
+  message_buffer[(codeword_count+1) * 8 + 5] = 0;
+  message_buffer[(codeword_count+1) * 8 + 6] = 1;
+  message_buffer[(codeword_count+1) * 8 + 7] = 1;
+
+  message_buffer[(codeword_count+2) * 8 + 0] = 0;
+  message_buffer[(codeword_count+2) * 8 + 1] = 0;
+  message_buffer[(codeword_count+2) * 8 + 2] = 1;
+  message_buffer[(codeword_count+2) * 8 + 3] = 0;
+  message_buffer[(codeword_count+2) * 8 + 4] = 0;
+  message_buffer[(codeword_count+2) * 8 + 5] = 1;
+  message_buffer[(codeword_count+2) * 8 + 6] = 1;
+  message_buffer[(codeword_count+2) * 8 + 7] = 1;
+
+  message_buffer[(codeword_count+3) * 8 + 0] = 0;
+  message_buffer[(codeword_count+3) * 8 + 1] = 1;
+  message_buffer[(codeword_count+3) * 8 + 2] = 1;
+  message_buffer[(codeword_count+3) * 8 + 3] = 1;
+  message_buffer[(codeword_count+3) * 8 + 4] = 0;
+  message_buffer[(codeword_count+3) * 8 + 5] = 1;
+  message_buffer[(codeword_count+3) * 8 + 6] = 1;
+  message_buffer[(codeword_count+3) * 8 + 7] = 1;
+
+  message_buffer[(codeword_count+6) * 8 + 0] = 1;
+  message_buffer[(codeword_count+6) * 8 + 1] = 1;
+  message_buffer[(codeword_count+6) * 8 + 2] = 1;
+  message_buffer[(codeword_count+6) * 8 + 3] = 0;
+  message_buffer[(codeword_count+6) * 8 + 4] = 0;
+  message_buffer[(codeword_count+6) * 8 + 5] = 1;
+  message_buffer[(codeword_count+6) * 8 + 6] = 1;
+  message_buffer[(codeword_count+6) * 8 + 7] = 1;
+
+  message_buffer[(codeword_count+7) * 8 + 0] = 1;
+  message_buffer[(codeword_count+7) * 8 + 1] = 1;
+  message_buffer[(codeword_count+7) * 8 + 2] = 1;
+  message_buffer[(codeword_count+7) * 8 + 3] = 0;
+  message_buffer[(codeword_count+7) * 8 + 4] = 0;
+  message_buffer[(codeword_count+7) * 8 + 5] = 0;
+  message_buffer[(codeword_count+7) * 8 + 6] = 1;
+  message_buffer[(codeword_count+7) * 8 + 7] = 0;
+
+  message_buffer[(codeword_count+8) * 8 + 0] = 0;
+  message_buffer[(codeword_count+8) * 8 + 1] = 0;
+  message_buffer[(codeword_count+8) * 8 + 2] = 0;
+  message_buffer[(codeword_count+8) * 8 + 3] = 1;
+  message_buffer[(codeword_count+8) * 8 + 4] = 0;
+  message_buffer[(codeword_count+8) * 8 + 5] = 0;
+  message_buffer[(codeword_count+8) * 8 + 6] = 0;
+  message_buffer[(codeword_count+8) * 8 + 7] = 0;
+
+  message_buffer[(codeword_count+9) * 8 + 0] = 0;
+  message_buffer[(codeword_count+9) * 8 + 1] = 0;
+  message_buffer[(codeword_count+9) * 8 + 2] = 0;
+  message_buffer[(codeword_count+9) * 8 + 3] = 1;
+  message_buffer[(codeword_count+9) * 8 + 4] = 0;
+  message_buffer[(codeword_count+9) * 8 + 5] = 1;
+  message_buffer[(codeword_count+9) * 8 + 6] = 1;
+  message_buffer[(codeword_count+9) * 8 + 7] = 1;
+  #endif
+  for(int i=0; i<8; ++i) {
+    printf("%d ", message_buffer[codeword_count * 8 + i]);
+  }
+  printf("\n");
+}
+
+void maskData(uint8_t *qrbuffer, const uint32_t width, MASK_TYPE mask_type) {
+  switch(mask_type) {
+    case MASK_1:
+      for(uint32_t y=0; y<width; ++y) {
+        for(uint32_t x=0; x<width; ++x) {
+          if(((x+y) % 2) == 0) {
+            qrbuffer[y*width+x] = !qrbuffer[y*width+x];
+          }
+        }
+      }
+      break;
+    case MASK_2:
+      break;
+    case MASK_3:
+      break;
+    case MASK_4:
+      break;
+    case MASK_HOR_INTERLEAVE:
+      break;
+    case MASK_CHECKERBOARD:
+      break;
+    case MASK_DIAGONAL_WAVE:
+      break;
+    case MASK_VERTICAL_INTERLEAVE:
+      for(uint32_t y=0; y<width; ++y) {
+        for(uint32_t x=0; x<width; ++x) {
+          if(y % 3 == 0) {
+            qrbuffer[y*width+x] = !qrbuffer[y*width+x];
+          }
+        }
+      }
+      break;
+  }
 }
 
 int main() {
-  printf("Qrcode\n");
-  setPositionMarker(qrbuffer, 21);
-  setSeparators(qrbuffer, 21);
-  drawTiming(qrbuffer, 21, VERSION_1);
-
-  uint8_t format[FORMAT_LENGTH] = {0};
-  generateFormat(format, EC_LEVEL_MED, MASK_HOR_INTERLEAVE);
-  drawFormat(qrbuffer, format, 21);
-
   initialize_gf256(QRCODE_ECC_MODULO);
+  memset(qrbuffer, 0, sizeof(uint8_t) * COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1));
+
+  printf("Qrcode\n");
+  VERSION version = VERSION_1;
+  //EC_LEVEL eclevel = EC_LEVEL_HIGH;
+  EC_LEVEL eclevel = EC_LEVEL_MED;
+  MASK_TYPE mask_type = MASK_1;
+  uint32_t width = COMPUTE_SIZE(version);
+  drawPlaceholders(qrbuffer, width, version);
 
   /*
    * should pack into a single byte but ... not for now
    * right now, a single output bit is stored into one byte
    * */
-  uint8_t message[1024] = {0};
-  encodeMessage("HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT * 8, message);
+  uint8_t message_buffer[1024] = {0};
+  memset(message_buffer, 0, 1024);
+  //encodeMessageAndECC(message_buffer, "ABCDE123", 8, ENCODING_ALPHANUMERIC, V1_H_CODEWORD_COUNT, V1_H_EC_COUNT);
+  encodeMessageAndECC(message_buffer, "HELLO WORLD", 11, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
 
-  computeECC(message, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT, &message[V1_M_CODEWORD_COUNT * 8]);
+  drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
+  maskData(qrbuffer, width, mask_type);
+  drawRealFixed(qrbuffer, width, version, eclevel, mask_type);
+  //drawPlaceholders(qrbuffer, width, version);
 
-  drawData(qrbuffer, message, 21);
-
-  saveAsTextPbm("image.ppm", qrbuffer, 21, 21, RESIZE_FACTOR);
+  saveAsTextPbm("image.ppm", qrbuffer, COMPUTE_SIZE(version), COMPUTE_SIZE(version), RESIZE_FACTOR);
   return 0;
 }
