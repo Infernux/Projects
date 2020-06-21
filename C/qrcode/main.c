@@ -230,69 +230,47 @@ static void setPlaceHolderSeparators(uint8_t *buf, uint32_t width) {
 }
 
 static inline uint8_t convertCharToAlphanumeric(const char character) {
-    uint8_t res = 0;
-    switch(character) {
-      case '0':
-        res = 0;
-        break;
-      case '1':
-        res = 1;
-        break;
-      case '2':
-        res = 2;
-        break;
-      case '3':
-        res = 3;
-        break;
-      case 'A':
-        res = 10;
-        break;
-      case 'B':
-        res = 11;
-        break;
-      case 'C':
-        res = 12;
-        break;
-      case 'D':
-        res = 13;
-        break;
-      case 'E':
-        res = 14;
-        break;
-      case 'F':
-        res = 15;
-        break;
-      case 'H':
-        res = 17;
-        break;
-      case 'I':
-        res = 18;
-        break;
-      case 'L':
-        res = 21;
-        break;
-      case 'N':
-        res = 23;
-        break;
-      case 'O':
-        res = 24;
-        break;
-      case 'R':
-        res = 27;
-        break;
-      case 'W':
-        res = 32;
-        break;
-      case 'Y':
-        res = 34;
-        break;
-      case ' ':
-        res = 36;
-        break;
-      default:
-        printf("Invalid character %d (%c)\n", character, character);
-        break;
+    char res = character;
+
+    if(character >= 48 && character <= 57) {
+      res -= 48;
+    } else if (character >= 65 && character <= 90) {
+      res -= 55;
+    } else {
+      switch(character) {
+        case ' ':
+          res = 36;
+          break;
+        case '$':
+          res = 37;
+          break;
+        case '%':
+          res = 38;
+          break;
+        case '*':
+          res = 39;
+          break;
+        case '+':
+          res = 40;
+          break;
+        case '-':
+          res = 41;
+          break;
+        case '.':
+          res = 42;
+          break;
+        case '/':
+          res = 43;
+          break;
+        case ':':
+          res = 44;
+          break;
+        default:
+          printf("Invalid character %d (%c)\n", character, character);
+          break;
+      }
     }
+
     return res;
 }
 
