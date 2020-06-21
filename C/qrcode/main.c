@@ -424,14 +424,36 @@ void encodeMessageAndECC(uint8_t *message_buffer, const char *message_to_encode,
   computeECC(message_buffer, codeword_count, ecc_count, &message_buffer[codeword_count * 8]);
 }
 
+void getWordsCountFromECCLevel(const EC_LEVEL eclevel, uint32_t *data_codeword_count, uint32_t *ecc_codeword_count) {
+  switch(eclevel) {
+    case EC_LEVEL_LOW:
+      *data_codeword_count = V1_L_CODEWORD_COUNT;
+      *ecc_codeword_count  = V1_L_EC_COUNT;
+      break;
+    case EC_LEVEL_MED:
+      *data_codeword_count = V1_M_CODEWORD_COUNT;
+      *ecc_codeword_count  = V1_M_EC_COUNT;
+      break;
+    case EC_LEVEL_Q:
+      *data_codeword_count = V1_Q_CODEWORD_COUNT;
+      *ecc_codeword_count  = V1_Q_EC_COUNT;
+      break;
+    case EC_LEVEL_HIGH:
+      *data_codeword_count = V1_H_CODEWORD_COUNT;
+      *ecc_codeword_count  = V1_H_EC_COUNT;
+      break;
+  }
+}
+
 int main() {
   initialize_gf256(QRCODE_ECC_MODULO);
   memset(qrbuffer, 0, sizeof(uint8_t) * COMPUTE_SIZE(VERSION_1)*COMPUTE_SIZE(VERSION_1));
 
   printf("Qrcode\n");
   VERSION version = VERSION_1;
-  //EC_LEVEL eclevel = EC_LEVEL_HIGH;
-  EC_LEVEL eclevel = EC_LEVEL_MED;
+  EC_LEVEL eclevel = EC_LEVEL_M;
+  uint32_t codewordcount, eccount;
+  getWordsCountFromECCLevel(eclevel, &codewordcount, &eccount);
   MASK_TYPE mask_type = MASK_1;
   uint32_t width = COMPUTE_SIZE(version);
   drawPlaceholders(qrbuffer, width, version);
@@ -443,8 +465,7 @@ int main() {
   uint8_t message_buffer[1024] = {0};
 #if 1
   memset(message_buffer, 0, 1024);
-  //encodeMessageAndECC(message_buffer, "ABCDE123", 8, ENCODING_ALPHANUMERIC, V1_H_CODEWORD_COUNT, V1_H_EC_COUNT);
-  encodeMessageAndECC(message_buffer, "BONJOUR", 7, ENCODING_ALPHANUMERIC, V1_M_CODEWORD_COUNT, V1_M_EC_COUNT);
+  encodeMessageAndECC(message_buffer, "BONJOUR", 7, ENCODING_ALPHANUMERIC, codewordcount, eccount);
 
   drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
   maskData(qrbuffer, width, mask_type);
