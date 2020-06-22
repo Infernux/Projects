@@ -256,6 +256,7 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
 
   switch(encoding) {
     case ENCODING_NUMERIC:
+      bit_count += encodeMessageNumeric(string, length, &encoded[bit_count]);
       break;
     case ENCODING_ALPHANUMERIC:
       bit_count += encodeMessageAlphanumeric(string, length, &encoded[bit_count]);
@@ -281,8 +282,10 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
   printf("bit count after terminator : %d\n", bit_count);
 
   /* add zeroes to make it a multiple of 8 */
-  for(uint32_t i = bit_count % 8; i < 8; ++i) {
-    encoded[bit_count++] = 0;
+  if((bit_count & 0x7) != 0) {
+    for(uint32_t i = bit_count % 8; i < 8; ++i) {
+      encoded[bit_count++] = 0;
+    }
   }
 
   printf("bit count after 8 rounding : %d\n", bit_count);
@@ -451,7 +454,7 @@ int main() {
 
   printf("Qrcode\n");
   VERSION version = VERSION_1;
-  EC_LEVEL eclevel = EC_LEVEL_M;
+  EC_LEVEL eclevel = EC_LEVEL_MED;
   uint32_t codewordcount, eccount;
   getWordsCountFromECCLevel(eclevel, &codewordcount, &eccount);
   MASK_TYPE mask_type = MASK_1;
