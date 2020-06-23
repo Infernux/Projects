@@ -92,7 +92,7 @@ uint32_t encodeMessageNumeric(const char *string, const uint32_t length, uint8_t
     num = num3 + num2*10 + num1 * 100;
 
     if(num1 != 0) {
-      len = 7;
+      len = 10;
     } else if(num2 != 0) {
       len = 7;
     } else {
