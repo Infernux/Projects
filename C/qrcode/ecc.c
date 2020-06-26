@@ -8,7 +8,7 @@
 #define max(a,b) (a>b?a:b)
 #define MAX_POL_SIZE 68
 
-#define DEBUG_POLYNOME
+//#define DEBUG_POLYNOME
 
 static uint8_t message_polynome[256];
 static uint8_t generator_polynome[MAX_POL_SIZE];
@@ -118,7 +118,7 @@ void computeECC_words(uint8_t *message_polynome, const uint32_t data_codeword_co
   printf("-----\n");
   for(uint32_t i=0; i<data_codeword_count; ++i) {
     uint8_t factor = gf256_antilog[message_polynome[i==0?0:1]]; /* highest factor */
-    printf("factor %d\n", factor);
+    //printf("factor %d\n", factor);
     for(uint32_t j=0; j<=ecc_codeword_count; j++) {
       uint16_t tmp = generator_polynome[j] + factor;
       tmp %= 255;

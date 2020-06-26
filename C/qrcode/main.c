@@ -254,6 +254,8 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
       encoded[bit_count++] = length & (1 << 0) ? 1 : 0;
   }
 
+  printf("bit count format %d\n", bit_count);
+
   switch(encoding) {
     case ENCODING_NUMERIC:
       bit_count += encodeMessageNumeric(string, length, &encoded[bit_count]);
@@ -262,8 +264,10 @@ void encodeMessage(const char *string, const uint32_t length, const ENCODING enc
       bit_count += encodeMessageAlphanumeric(string, length, &encoded[bit_count]);
       break;
     case ENCODING_BYTE:
+      bit_count += encodeMessageByte(string, length, &encoded[bit_count]);
       break;
     case ENCODING_KANJI:
+      bit_count += encodeMessageKanji(string, length, &encoded[bit_count]);
       break;
     case ENCODING_ECI:
       break;
@@ -468,7 +472,16 @@ int main() {
   uint8_t message_buffer[1024] = {0};
 #if 1
   memset(message_buffer, 0, 1024);
-  encodeMessageAndECC(message_buffer, "BONJOUR", 7, ENCODING_ALPHANUMERIC, codewordcount, eccount);
+  char string[6];
+
+  string[0] = 0xE3;
+  string[1] = 0x81;
+  string[2] = 0x8B;
+  string[3] = 0xE3;
+  string[4] = 0x81;
+  string[5] = 0x8E;
+
+  encodeMessageAndECC(message_buffer, string, 6, ENCODING_BYTE, codewordcount, eccount);
 
   drawData(qrbuffer, message_buffer, COMPUTE_SIZE(version));
   maskData(qrbuffer, width, mask_type);

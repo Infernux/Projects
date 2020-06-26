@@ -55,6 +55,16 @@ static inline uint8_t convertCharToAlphanumeric(const char character) {
     return res;
 }
 
+uint32_t encodeMessageByte(const char *string, const uint32_t length, uint8_t *encoded) {
+  uint32_t index = 0;
+  for(uint32_t i = 0; i < length; i++) {
+    for(int32_t ind = 7; ind >= 0; --ind) {
+      encoded[index++] = string[i] & (1 << ind) ? 1 : 0;
+    }
+  }
+  return index;
+}
+
 /* encode by pairs */
 uint32_t encodeMessageAlphanumeric(const char *string, const uint32_t length, uint8_t *encoded) {
   uint32_t i = 0;
@@ -114,5 +124,31 @@ uint32_t encodeMessageNumeric(const char *string, const uint32_t length, uint8_t
     encoded[index++] = num & (1 << j) ? 1 : 0;
   }
 
+  return index;
+}
+
+uint32_t encodeMessageKanji(const char *string, const uint32_t length, uint8_t *encoded) {
+  uint32_t index = 0;
+  uint16_t num;
+  for(uint32_t i=0; i<length; ++i) {
+    uint16_t c = string[i];
+    if(c>=0x8140 && c<=0x9FFC) {
+      c -= KANJI_CONSTANT_1;
+    } else if(c>=0xE040 && c<=0xEBBF) {
+      c -= KANJI_CONSTANT_2;
+    } else {
+      printf("Not a kanji %x\n", c);
+      continue;
+    }
+    printf("c %x (%x)\n", c, (c & 0xFF00)>>8);
+    c = ((c & 0xFF00) >> 8) * 0xC0 + (c & 0xFF);
+    printf("c %x\n", c);
+    for(int32_t j=12; j>=0; --j) {
+      printf("%d", c & (1 << j) ? 1 : 0);
+      encoded[index++] = c & (1 << j) ? 1 : 0;
+    }
+    printf("\n");
+  }
+  printf("index : %d\n", index);
   return index;
 }
