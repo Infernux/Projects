@@ -91,13 +91,7 @@ uint32_t encodeMessageNumeric(const char *string, const uint32_t length, uint8_t
     printf("%d %d %d\n", num1, num2, num3);
     num = num3 + num2*10 + num1 * 100;
 
-    if(num1 != 0) {
-      len = 10;
-    } else if(num2 != 0) {
-      len = 7;
-    } else {
-      len = 4;
-    }
+    len = 10;
     for(int32_t j=len-1; j>=0; --j) {
       printf("%d\n", num & (1 << j) ? 1 : 0);
       encoded[index++] = num & (1 << j) ? 1 : 0;
@@ -109,11 +103,7 @@ uint32_t encodeMessageNumeric(const char *string, const uint32_t length, uint8_t
     uint8_t num1 = convertCharToNumeric(string[i]);
     uint8_t num2 = convertCharToNumeric(string[i+1]);
     num = num2 + num1 * 10;
-    if(num1 != 0) {
-      len = 7;
-    } else {
-      len = 4;
-    }
+    len = 7;
   } else if((length % 3)==1) { /* rest : length % 3 != 0 */
     uint8_t num1 = convertCharToNumeric(string[i]);
     num = num1;
