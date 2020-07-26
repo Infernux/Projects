@@ -28,6 +28,7 @@ categories.append('pcr_case_daily.csv')
 for categorie in categories:
     src = getSource("{}{}".format(base_url, categorie))
     src = src.decode('utf-8')
-    with open(categorie+"_"+date, "w") as f:
+    path_part = categorie.split('.')
+    with open("data/{}_{}.{}".format(path_part[0], date, path_part[1]), "w") as f:
         f.write(str(src))
     #print(src)
