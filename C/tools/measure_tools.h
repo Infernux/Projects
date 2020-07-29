@@ -18,7 +18,7 @@ void print_timediff(char *text, struct timespec *start, struct timespec *end);
     print_timediff(name, &time_start, &time_end);
 #define TIME_CLEAN
 
-#elif defined(__WIN32)
+#elif defined(_WIN32) || defined(_WIN64)
 #include "Windows.h"
 
 #if 1
