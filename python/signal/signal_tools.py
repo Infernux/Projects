@@ -8,6 +8,21 @@ import numpy as np
 gaussian_variance = 0.4
 gaussian_target = 2
 max_gaussian = 0
+delta = 1e-4
+
+def naive_fft(samples):
+    fhat = list()
+    for k in range(0, len(samples)):
+        acc = [0, 0]
+        j = 0
+        for sample in samples:
+            acc[0] += sample
+            acc[1] += -2*np.pi*j*k/len(samples)
+            j+=1
+
+        fhat.append(acc)
+
+    return fhat
 
 def generate_signal_from_list_of_freq(freq_list, range_from, range_to, delta):
     if range_from > range_to:
@@ -50,13 +65,41 @@ def gaussian(x, target, variance):
 
     return factor * exp(exp_operand)
 
-def add_noise_to_graph(values):
+def add_noise_to_graph(values, max_noise):
     noisy_samples = list()
     for sample in values:
-        noisy_samples.append(sample + gaussian(random.randrange(0, 40)/10, gaussian_target, gaussian_variance) - (max_gaussian/2))
+        noise = (gaussian(random.randrange(0, 40)/10, gaussian_target, gaussian_variance) / max_gaussian) * max_noise
+        noisy_samples.append(sample + noise)
         #noisy_samples.append(sample + random.gauss(gaussian_target, gaussian_variance) - (max_gaussian/2))
 
     return noisy_samples
+
+def conjugate(val):
+    new_v = val.copy()
+    new_v[1] = -new_v[1]
+
+    return new_v
+
+def multiply_complex_by_conjugate(sample):
+    conj = conjugate(sample)
+    # multiplying both complex parts gives i^2 which is -1
+    return sample[0] * (conj[0] + conj[1]) + sample[1] * conj[0] - sample[1] * conj[1]
+
+def multiply_complex_by_conjugate_2(sample):
+    # multiplying both complex parts gives i^2 which is -1
+    return sample * sample.conjugate()
+
+def compute_PSD(samples, dt):
+    freq_list = list()
+    power_list = list()
+    i = 0
+    for sample in samples:
+        if i != 0:
+            power_list.append(multiply_complex_by_conjugate_2(sample) / len(samples))
+            freq_list.append(1/(dt*len(samples)) * i)
+        i+=1
+
+    return power_list, freq_list
 
 if __name__ == '__main__':
     random.seed(42)
@@ -66,9 +109,24 @@ if __name__ == '__main__':
 
     print('main')
     #indices_list, sample_list = generate_signal_from_list_of_freq([100, 50, 1000], 0, 0.1, 1e-4)
-    indices_list, sample_list = generate_signal_from_list_of_freq([100, 50], 0, 0.1, 1e-4)
-    noisy_sample_list = add_noise_to_graph(sample_list)
+    indices_list, sample_list = generate_signal_from_list_of_freq([120, 50], 0, 1, delta)
+    noisy_sample_list = add_noise_to_graph(sample_list, 10)
 
-    plt.plot(indices_list, sample_list)
-    plt.plot(indices_list, noisy_sample_list)
+    #fhat = np.fft.fft(sample_list, len(sample_list))
+    fhat = np.fft.fft(noisy_sample_list, len(sample_list))
+    #fhat = naive_fft(sample_list)
+    #fhat = naive_fft(noisy_sample_list)
+
+    power_list, freq_list = compute_PSD(fhat, delta)
+    for a in range(0, 100):
+        power_list[a] = 0 if power_list[a] < 50 else power_list[a]
+    for a in range(100, len(power_list)):
+        power_list[a] = 0
+    #plt.plot(freq_list, power_list)
+
+    ifft = np.fft.ifft(power_list)
+
+    plt.plot(indices_list[:-1], ifft)
+    #plt.plot(indices_list, sample_list)
+    plt.plot(indices_list[:-1], sample_list[:-1])
     plt.show()
