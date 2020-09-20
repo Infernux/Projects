@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import random
-from math import sqrt, exp
+from math import sqrt, exp, sin, cos
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,14 +10,17 @@ gaussian_target = 2
 max_gaussian = 0
 delta = 1e-4
 
-def naive_fft(samples):
+def naive_dft(samples):
     fhat = list()
+    w = -2*np.pi/len(samples)
     for k in range(0, len(samples)):
         acc = [0, 0]
         j = 0
         for sample in samples:
-            acc[0] += sample
-            acc[1] += -2*np.pi*j*k/len(samples)
+            real = sample * cos(w * j * k)
+            complex_part = sample * sin(w * j * k)
+            acc[0] += real
+            acc[1] += complex_part
             j+=1
 
         fhat.append(acc)
@@ -94,9 +97,8 @@ def compute_PSD(samples, dt):
     power_list = list()
     i = 0
     for sample in samples:
-        if i != 0:
-            power_list.append(multiply_complex_by_conjugate_2(sample) / len(samples))
-            freq_list.append(1/(dt*len(samples)) * i)
+        power_list.append(multiply_complex_by_conjugate(sample) / len(samples))
+        freq_list.append(1/(dt*len(samples)) * i)
         i+=1
 
     return power_list, freq_list
@@ -108,25 +110,34 @@ if __name__ == '__main__':
     #gaussian_test()
 
     print('main')
-    #indices_list, sample_list = generate_signal_from_list_of_freq([100, 50, 1000], 0, 0.1, 1e-4)
     indices_list, sample_list = generate_signal_from_list_of_freq([120, 50], 0, 1, delta)
     noisy_sample_list = add_noise_to_graph(sample_list, 10)
 
     #fhat = np.fft.fft(sample_list, len(sample_list))
-    fhat = np.fft.fft(noisy_sample_list, len(sample_list))
-    #fhat = naive_fft(sample_list)
-    #fhat = naive_fft(noisy_sample_list)
+    #fhat = np.fft.fft(noisy_sample_list, len(sample_list))
+    #fhat = naive_dft(sample_list)
+    fhat = naive_dft(noisy_sample_list)
 
     power_list, freq_list = compute_PSD(fhat, delta)
-    for a in range(0, 100):
-        power_list[a] = 0 if power_list[a] < 50 else power_list[a]
-    for a in range(100, len(power_list)):
-        power_list[a] = 0
-    #plt.plot(freq_list, power_list)
+    max_indice = int(np.floor(len(freq_list)/2))
+    freq = (1/(delta*len(fhat))) * np.arange(len(fhat))
+    plt.plot(freq_list, power_list)
+    plt.xlim(freq_list[1], freq_list[max_indice])
+    plt.ylim(0, max(power_list[1:]))
+    plt.show()
+    for a in range(0, len(power_list)):
+        power_list[a] = 0 if power_list[a] < 120 else power_list[a]
+    #for a in range(100, len(power_list)):
+    #    power_list[a] = 0
+    plt.plot(freq_list, power_list)
+    plt.xlim(freq_list[1], freq_list[max_indice])
+    plt.ylim(0, max(power_list[1:]))
+    plt.show()
 
     ifft = np.fft.ifft(power_list)
 
-    plt.plot(indices_list[:-1], ifft)
-    #plt.plot(indices_list, sample_list)
-    plt.plot(indices_list[:-1], sample_list[:-1])
+    # actually only half the sampling rate is usable
+    plt.plot(indices_list, sample_list, color='r')
+    plt.plot(indices_list, ifft, color='b')
+    plt.xlim(indices_list[1], indices_list[-1])
     plt.show()
