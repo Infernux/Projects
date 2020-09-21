@@ -27,6 +27,26 @@ def naive_dft(samples):
 
     return fhat
 
+def naive_idft(samples):
+    fhat = list()
+    w = 2*np.pi/len(samples)
+    for k in range(0, len(samples)):
+        acc = [0, 0]
+        j = 0
+        for sample in samples:
+            acc[0] += sample[0] * cos(w*j*k) - sample[1] * sin(w*j*k)
+            acc[1] += sample[0] * sin(w*j*k) + sample[1] * cos(w*j*k)
+            #acc[0] += sample * cos(w*j*k)
+            #acc[1] += sample * sin(w*j*k)
+            j+=1
+
+        acc[0] /= len(samples)
+        acc[1] /= len(samples)
+
+        fhat.append(acc)
+
+    return fhat
+
 def generate_signal_from_list_of_freq(freq_list, range_from, range_to, delta):
     if range_from > range_to:
         print("Invalid range, {} isn't smaller than {}".format(range_from, range_to))
@@ -134,7 +154,8 @@ if __name__ == '__main__':
     plt.ylim(0, max(power_list[1:]))
     plt.show()
 
-    ifft = np.fft.ifft(power_list)
+    ifft = np.fft.ifft(fhat)
+    idft = naive_idft(fhat)
 
     # actually only half the sampling rate is usable
     plt.plot(indices_list, sample_list, color='r')
