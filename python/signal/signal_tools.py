@@ -49,9 +49,10 @@ def improved_dft(samples):
     f_even = list()
     f_odd = list()
     N = len(samples)
+    half_N = int(N / 2)
     w = -2*np.pi/N
     i = 0
-    for _ in range(0, int(len(samples)/2)):
+    for _ in range(0, half_N):
         f_even.append(samples[i])
         i+=1
         f_odd.append(samples[i])
@@ -60,11 +61,11 @@ def improved_dft(samples):
     fhat_even = naive_dft(f_even)
     fhat_odd = naive_dft(f_odd)
     res = list()
-    for i in range(0, int(len(samples)/2)):
-        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i), fhat_even[i][1] + fhat_odd[i][1] * sin(w*i)]
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1]]
         res.append(v)
-    for i in range(0, int(len(samples)/2)):
-        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+N/2)), fhat_odd[i][1] * sin(w*(i+N/2))]
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1]]
         res.append(v)
 
     return res
