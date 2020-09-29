@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import random
-from math import sqrt, exp, sin, cos
+from math import sqrt, exp, sin, cos, log2
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -45,7 +45,9 @@ def naive_idft(samples):
 
     return fhat
 
-def improved_dft(samples):
+def naive_fft(samples):
+    if len(samples) < 16:
+        return naive_dft(samples)
     f_even = list()
     f_odd = list()
     N = len(samples)
@@ -70,11 +72,63 @@ def improved_dft(samples):
 
     return res
 
-def naive_fft(samples):
-    pass
-
 def naive_ifft(samples):
-    pass
+    if len(samples) < 16:
+        return naive_idft(samples)
+
+    f_even = list()
+    f_odd = list()
+    N = len(samples)
+    half_N = int(N / 2)
+    w = 2*np.pi/N
+    i = 0
+    for _ in range(0, half_N):
+        f_even.append(samples[i])
+        i+=1
+        f_odd.append(samples[i])
+        i+=1
+
+    fhat_even = naive_ifft(f_even)
+    fhat_odd = naive_ifft(f_odd)
+
+    res = list()
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1] + fhat_odd[i][1] * cos(w*i) + fhat_odd[i][0] * sin(w*i)]
+        v[0] /= 2
+        v[1] /= 2
+        res.append(v)
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1] + fhat_odd[i][1] * cos(w*(i+half_N)) + fhat_odd[i][0] * sin(w*(i+half_N))]
+        v[0] /= 2
+        v[1] /= 2
+        res.append(v)
+
+    return res
+
+def improved_dft(samples):
+    f_even = list()
+    f_odd = list()
+    N = len(samples)
+    half_N = int(N / 2)
+    w = -2*np.pi/N
+    i = 0
+    for _ in range(0, half_N):
+        f_even.append(samples[i])
+        i+=1
+        f_odd.append(samples[i])
+        i+=1
+
+    fhat_even = naive_dft(f_even)
+    fhat_odd = naive_dft(f_odd)
+    res = list()
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1] + fhat_odd[i][1] * cos(w*i) + fhat_odd[i][0] * sin(w*i)]
+        res.append(v)
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1] + fhat_odd[i][1] * cos(w*(i+half_N)) + fhat_odd[i][0] * sin(w*(i+half_N))]
+        res.append(v)
+
+    return res
 
 def generate_signal_from_list_of_freq(freq_list, range_from, range_to, delta):
     if range_from > range_to:
@@ -148,6 +202,13 @@ def compute_PSD(samples, dt):
 
     return power_list, freq_list
 
+def add_padding(indices, samples, delta):
+    last = indices[len(samples)-1]
+    for i in range(len(sample_list), 2**(int(log2(len(sample_list)))+1)):
+        last += delta
+        indices.append(last)
+        sample_list.append(0)
+
 if __name__ == '__main__':
     random.seed(42)
     max_gaussian = gaussian(gaussian_target, gaussian_target, gaussian_variance)
@@ -155,20 +216,14 @@ if __name__ == '__main__':
     #gaussian_test()
 
     print('main')
-    indices_list, sample_list = generate_signal_from_list_of_freq([120, 50], 0, 1, delta)
+    indices_list, sample_list = generate_signal_from_list_of_freq([120, 50, 192, 1200, 4000], 0, 1, delta)
     noisy_sample_list = add_noise_to_graph(sample_list, 10)
-    for i in range(0, 24):
-        sample_list.append(0)
+    add_padding(indices_list, sample_list, delta)
 
-    #fhat = np.fft.fft(noisy_sample_list, len(sample_list))
-    fhat = naive_dft(sample_list)
-    fhat2 = improved_dft(sample_list)
-    print(fhat[0], fhat2[0])
-    print(fhat[1], fhat2[1])
-    print(fhat[2], fhat2[2])
+    #fhat = np.fft.fft(sample_list, len(sample_list))
+    #fhat = naive_dft(sample_list)
+    fhat = improved_dft(sample_list)
     #fhat = naive_dft(noisy_sample_list)
-    import sys
-    sys.exit(0)
 
     power_list, freq_list = compute_PSD(fhat, delta)
     max_indice = int(np.floor(len(freq_list)/2))
@@ -188,9 +243,11 @@ if __name__ == '__main__':
     plt.show()
 
     idft = naive_idft(power_list)
+    ifft = naive_ifft(power_list)
 
     # actually only half the sampling rate is usable
-    plt.plot(indices_list, [item[0] for item in idft], color='b')
-    plt.plot(indices_list, sample_list, color='r')
+    plt.plot(indices_list, [item[0] for item in idft], color='r')
+    plt.plot(indices_list, [item[0] for item in ifft], color='b')
+    #plt.plot(indices_list, sample_list, color='r')
     plt.xlim(indices_list[0], indices_list[-1])
     plt.show()
