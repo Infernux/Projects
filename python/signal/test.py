@@ -3,7 +3,8 @@
 import unittest
 
 import numpy as np
-from signal_tools import generate_signal_from_list_of_freq, compute_PSD, naive_dft, naive_idft
+from signal_tools import *
+import signal_tools
 
 delta = 1e-3
 error = 1e-8
@@ -14,6 +15,22 @@ def convertNumpyComplexToMyComplex(array):
         val_list.append([v.real, v.imag])
 
     return val_list
+
+class TestFFT(unittest.TestCase):
+    def test_naive_fft(self):
+        signal_tools.omega_matrix_size = 8
+        delta = 1e-4
+        # generate data
+        indices_list, sample_list = generate_signal_from_list_of_freq([120, 50], 0, 1, delta)
+        add_padding(indices_list, sample_list, delta)
+
+        generate_omega_matrix(signal_tools.omega_matrix_size)
+        ref_fhat  = np.fft.fft(sample_list, len(sample_list)) #compute fft using numpy
+        test_fhat = naive_fft(sample_list) #compute fft using my own function
+
+        for idx in range(0, len(sample_list)):
+            self.assertTrue(abs(ref_fhat[idx].real - test_fhat[idx][0]) < error)
+            self.assertTrue(abs(ref_fhat[idx].imag - test_fhat[idx][1]) < error)
 
 class TestDFT(unittest.TestCase):
     def test_dft(self):

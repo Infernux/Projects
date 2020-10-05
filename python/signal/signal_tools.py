@@ -10,6 +10,33 @@ gaussian_target = 2
 max_gaussian = 0
 delta = 1e-4
 
+omega_matrix_size = 8
+omega_matrix = list()
+
+def generate_omega_matrix(size):
+    w = -2*np.pi/size
+    for j in range(0, size):
+        for k in range(0, size):
+            val = [0, 0]
+            val[0] = cos(w * j * k)
+            val[1] = sin(w * j * k)
+            omega_matrix.append(val)
+
+# real input
+def multiply_add_omega_matrix_with_vector(vector):
+
+
+    res = list()
+
+    for j in range(0, len(vector)):
+        acc = [0,0]
+        for i in range(0, len(vector)):
+            acc[0] += vector[i] * omega_matrix[j*len(vector) + i][0]
+            acc[1] += vector[i] * omega_matrix[j*len(vector) + i][1]
+        res.append(acc)
+
+    return res
+
 def naive_dft(samples):
     fhat = list()
     w = -2*np.pi/len(samples)
@@ -46,8 +73,9 @@ def naive_idft(samples):
     return fhat
 
 def naive_fft(samples):
-    if len(samples) < 16:
-        return naive_dft(samples)
+    if len(samples) <= omega_matrix_size:
+        return multiply_add_omega_matrix_with_vector(samples)
+    #return naive_dft(samples)
     f_even = list()
     f_odd = list()
     N = len(samples)
@@ -60,8 +88,8 @@ def naive_fft(samples):
         f_odd.append(samples[i])
         i+=1
 
-    fhat_even = naive_dft(f_even)
-    fhat_odd = naive_dft(f_odd)
+    fhat_even = naive_fft(f_even)
+    fhat_odd = naive_fft(f_odd)
     res = list()
     for i in range(0, half_N):
         v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1] + fhat_odd[i][1] * cos(w*i) + fhat_odd[i][0] * sin(w*i)]
@@ -204,10 +232,10 @@ def compute_PSD(samples, dt):
 
 def add_padding(indices, samples, delta):
     last = indices[len(samples)-1]
-    for i in range(len(sample_list), 2**(int(log2(len(sample_list)))+1)):
+    for i in range(len(samples), 2**(int(log2(len(samples)))+1)):
         last += delta
         indices.append(last)
-        sample_list.append(0)
+        samples.append(0)
 
 if __name__ == '__main__':
     random.seed(42)
@@ -220,10 +248,14 @@ if __name__ == '__main__':
     noisy_sample_list = add_noise_to_graph(sample_list, 10)
     add_padding(indices_list, sample_list, delta)
 
-    #fhat = np.fft.fft(sample_list, len(sample_list))
+    fhat_ref = np.fft.fft(sample_list, len(sample_list))
     #fhat = naive_dft(sample_list)
-    fhat = improved_dft(sample_list)
-    #fhat = naive_dft(noisy_sample_list)
+    #fhat = improved_dft(sample_list)
+    generate_omega_matrix(omega_matrix_size)
+    fhat = naive_fft(sample_list)
+
+    import sys
+    sys.exit()
 
     power_list, freq_list = compute_PSD(fhat, delta)
     max_indice = int(np.floor(len(freq_list)/2))
