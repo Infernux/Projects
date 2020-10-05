@@ -32,6 +32,26 @@ class TestFFT(unittest.TestCase):
             self.assertTrue(abs(ref_fhat[idx].real - test_fhat[idx][0]) < error)
             self.assertTrue(abs(ref_fhat[idx].imag - test_fhat[idx][1]) < error)
 
+    def test_ifft(self):
+        signal_tools.omega_matrix_size = 8
+        delta = 1e-4
+        # generate data
+        indices_list, sample_list = generate_signal_from_list_of_freq([120, 50], 0, 1, delta)
+        add_padding(indices_list, sample_list, delta)
+
+        generate_omega_matrix(signal_tools.omega_matrix_size)
+        generate_inverse_omega_matrix(signal_tools.omega_matrix_size)
+        ref_fhat  = np.fft.fft(sample_list, len(sample_list)) #compute fft using numpy
+        test_fhat = naive_fft(sample_list) #compute fft using my own function
+
+        ref_f = np.fft.ifft(ref_fhat)
+        test_f = matrix_ifft(test_fhat) #compute ifft using my own function
+
+        for idx in range(0, len(sample_list)):
+            self.assertTrue(abs(ref_f[idx].real - test_f[idx][0]) < error)
+            self.assertTrue(abs(ref_f[idx].imag - test_f[idx][1]) < error)
+
+
 class TestDFT(unittest.TestCase):
     def test_dft(self):
         # generate data

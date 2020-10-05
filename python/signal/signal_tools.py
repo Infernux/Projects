@@ -8,10 +8,20 @@ import numpy as np
 gaussian_variance = 0.4
 gaussian_target = 2
 max_gaussian = 0
-delta = 1e-4
+delta = 1e-6
 
 omega_matrix_size = 8
 omega_matrix = list()
+inverse_omega_matrix = list()
+
+def generate_inverse_omega_matrix(size):
+    w = 2*np.pi/size
+    for j in range(0, size):
+        for k in range(0, size):
+            val = [0, 0]
+            val[0] = cos(w * j * k)
+            val[1] = sin(w * j * k)
+            inverse_omega_matrix.append(val)
 
 def generate_omega_matrix(size):
     w = -2*np.pi/size
@@ -22,10 +32,23 @@ def generate_omega_matrix(size):
             val[1] = sin(w * j * k)
             omega_matrix.append(val)
 
+def multiply_invert_omega_matrix_with_vector(vector):
+    res = list()
+
+    for j in range(0, len(vector)):
+        acc = [0,0]
+        for i in range(0, len(vector)):
+            acc[0] += vector[i][0] * inverse_omega_matrix[j*len(vector) + i][0] - vector[i][1] * inverse_omega_matrix[j*len(vector) + i][1]
+            acc[1] += vector[i][0] * inverse_omega_matrix[j*len(vector) + i][1] + vector[i][1] * inverse_omega_matrix[j*len(vector) + i][0]
+
+        acc[0] /= len(vector)
+        acc[1] /= len(vector)
+        res.append(acc)
+
+    return res
+
 # real input
 def multiply_add_omega_matrix_with_vector(vector):
-
-
     res = list()
 
     for j in range(0, len(vector)):
@@ -96,6 +119,39 @@ def naive_fft(samples):
         res.append(v)
     for i in range(0, half_N):
         v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1] + fhat_odd[i][1] * cos(w*(i+half_N)) + fhat_odd[i][0] * sin(w*(i+half_N))]
+        res.append(v)
+
+    return res
+
+def matrix_ifft(samples):
+    if len(samples) <= omega_matrix_size:
+        return multiply_invert_omega_matrix_with_vector(samples)
+
+    f_even = list()
+    f_odd = list()
+    N = len(samples)
+    half_N = int(N / 2)
+    w = 2*np.pi/N
+    i = 0
+    for _ in range(0, half_N):
+        f_even.append(samples[i])
+        i+=1
+        f_odd.append(samples[i])
+        i+=1
+
+    fhat_even = matrix_ifft(f_even)
+    fhat_odd = matrix_ifft(f_odd)
+
+    res = list()
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1] + fhat_odd[i][1] * cos(w*i) + fhat_odd[i][0] * sin(w*i)]
+        v[0] /= 2
+        v[1] /= 2
+        res.append(v)
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1] + fhat_odd[i][1] * cos(w*(i+half_N)) + fhat_odd[i][0] * sin(w*(i+half_N))]
+        v[0] /= 2
+        v[1] /= 2
         res.append(v)
 
     return res
@@ -248,14 +304,12 @@ if __name__ == '__main__':
     noisy_sample_list = add_noise_to_graph(sample_list, 10)
     add_padding(indices_list, sample_list, delta)
 
-    fhat_ref = np.fft.fft(sample_list, len(sample_list))
+    #fhat_ref = np.fft.fft(sample_list, len(sample_list))
     #fhat = naive_dft(sample_list)
     #fhat = improved_dft(sample_list)
     generate_omega_matrix(omega_matrix_size)
+    generate_inverse_omega_matrix(omega_matrix_size)
     fhat = naive_fft(sample_list)
-
-    import sys
-    sys.exit()
 
     power_list, freq_list = compute_PSD(fhat, delta)
     max_indice = int(np.floor(len(freq_list)/2))
@@ -274,8 +328,7 @@ if __name__ == '__main__':
     plt.ylim(0, max([power[0] for power in power_list][1:]))
     plt.show()
 
-    idft = naive_idft(power_list)
-    ifft = naive_ifft(power_list)
+    ifft = matrix_ifft(power_list)
 
     # actually only half the sampling rate is usable
     plt.plot(indices_list, [item[0] for item in idft], color='r')
