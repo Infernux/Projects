@@ -95,6 +95,66 @@ def naive_idft(samples):
 
     return fhat
 
+def swap(arr, i1, i2):
+    tmp = arr[i1]
+    arr[i1] = arr[i2]
+    arr[i2] = tmp
+
+def rearrange_data_for_fft(samples, N):
+    N2 = int(N/2)
+    for i in range(1, N2, 2):
+        swap(samples, N2+i-1, i)
+
+    count = 1
+    for i in range(2, N2, 2):
+        for j in range(count):
+            swap(samples, i-j, i-j-1)
+        count += 1
+
+    count = 1
+    for i in range(N2 + 2, N, 2):
+        for j in range(count):
+            swap(samples, i-j, i-j-1)
+        count += 1
+
+    return samples
+
+def naive_iterative_fft(samples):
+    N = len(samples)
+    if N <= omega_matrix_size:
+        return multiply_add_omega_matrix_with_vector(samples)
+    #return naive_dft(samples)
+    f_even = list()
+    f_odd = list()
+
+    half_N = int(N / 2)
+    w = -2*np.pi/N
+    i = 0
+
+    omega_size_log2 = log2(omega_matrix_size)
+    data_size_log2 = log2(N)
+
+    for _ in range(data_size_log2 - omega_size_log2):
+        pass
+
+    for _ in range(0, half_N):
+        f_even.append(samples[i])
+        i+=1
+        f_odd.append(samples[i])
+        i+=1
+
+    fhat_even = naive_fft(f_even)
+    fhat_odd = naive_fft(f_odd)
+    res = list()
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*i) - fhat_odd[i][1] * sin(w*i), fhat_even[i][1] + fhat_odd[i][1] * cos(w*i) + fhat_odd[i][0] * sin(w*i)]
+        res.append(v)
+    for i in range(0, half_N):
+        v = [fhat_even[i][0] + fhat_odd[i][0] * cos(w*(i+half_N)) - fhat_odd[i][1] * sin(w*(i+half_N)), fhat_even[i][1] + fhat_odd[i][1] * cos(w*(i+half_N)) + fhat_odd[i][0] * sin(w*(i+half_N))]
+        res.append(v)
+
+    return res
+
 def naive_fft(samples):
     if len(samples) <= omega_matrix_size:
         return multiply_add_omega_matrix_with_vector(samples)
