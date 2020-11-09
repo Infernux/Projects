@@ -100,21 +100,21 @@ def swap(arr, i1, i2):
     arr[i1] = arr[i2]
     arr[i2] = tmp
 
-def rearrange_data_for_fft(samples, N):
+def rearrange_data_for_fft(samples, N, offset):
     N2 = int(N/2)
     for i in range(1, N2, 2):
-        swap(samples, N2+i-1, i)
+        swap(samples, offset+N2+i-1, offset+i)
 
     count = 1
     for i in range(2, N2, 2):
         for j in range(count):
-            swap(samples, i-j, i-j-1)
+            swap(samples, offset+i-j, offset+i-j-1)
         count += 1
 
     count = 1
     for i in range(N2 + 2, N, 2):
         for j in range(count):
-            swap(samples, i-j, i-j-1)
+            swap(samples, offset+i-j, offset+i-j-1)
         count += 1
 
     return samples
