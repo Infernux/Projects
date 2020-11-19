@@ -135,14 +135,62 @@ def rearrange_data_for_fft_sub(samples, N, offset):
 
     return samples
 
+def invert_bits(i, bitcount):
+    a = 0
+    mask = 2 ** (bitcount-1)
+    shift = (bitcount - 1)
+
+    for _ in range(bitcount//2):
+        a |= ((i & mask) >> shift)
+        mask //= 2
+        shift -= 2
+
+    if bitcount & 1:
+        a |= (i&mask)
+        mask //= 2
+
+    for _ in range(bitcount//2):
+        shift += 2
+        a |= ((i & mask) << shift)
+        mask //= 2
+
+    return a
+
+def rearrange_data_for_fft_mem(samples):
+    s = samples.copy()
+
+    N = len(samples)
+
+    omega_size_log2 = int(log2(omega_matrix_size))
+    data_size_log2 = int(log2(N))
+
+    count = data_size_log2 - omega_size_log2
+    inc = (2 ** count)
+
+    #for i in range(N):
+    i = 0
+    while i < N:
+        in_index = invert_bits(i, data_size_log2)
+        s[i] = samples[in_index]
+        for _ in range(omega_matrix_size-1):
+            in_index += inc
+            i += 1
+            s[i] = samples[in_index]
+        i += 1
+
+    return s
+
 def naive_iterative_fft(samples):
     N = len(samples)
 
     omega_size_log2 = int(log2(omega_matrix_size))
     data_size_log2 = int(log2(N))
 
+    count = data_size_log2 - omega_size_log2
+
     #前処理
-    rearrange_data_for_fft(samples)
+    samples = rearrange_data_for_fft_mem(samples)
+    #rearrange_data_for_fft(samples)
 
     for i in range(N // omega_matrix_size):
         #in C -> write in place at the end of the function
@@ -362,12 +410,28 @@ def add_padding(indices, samples, delta):
         samples.append(0)
 
 if __name__ == '__main__':
+    generate_omega_matrix(omega_matrix_size)
+    generate_inverse_omega_matrix(omega_matrix_size)
+
+    vec = list()
+    for i in range(2**19):
+        vec.append(i)
+    fhat = np.fft.fft(vec, len(vec))
+    #vec = naive_fft(vec)
+
+    vec = naive_iterative_fft(vec)
+    for i in range(len(fhat)):
+        if abs(vec[i][0] - fhat[i].real) > 1e-3:
+            print("Fucked at index {}".format(i), vec[i], fhat[i])
+            break
+    import sys
+    sys.exit(0)
+
     random.seed(42)
     max_gaussian = gaussian(gaussian_target, gaussian_target, gaussian_variance)
 
     #gaussian_test()
 
-    print('main')
     indices_list, sample_list = generate_signal_from_list_of_freq([120, 50, 192, 1200, 4000], 0, 1, delta)
     noisy_sample_list = add_noise_to_graph(sample_list, 10)
     add_padding(indices_list, sample_list, delta)
@@ -375,8 +439,7 @@ if __name__ == '__main__':
     #fhat_ref = np.fft.fft(sample_list, len(sample_list))
     #fhat = naive_dft(sample_list)
     #fhat = improved_dft(sample_list)
-    generate_omega_matrix(omega_matrix_size)
-    generate_inverse_omega_matrix(omega_matrix_size)
+
     fhat = naive_fft(sample_list)
 
     power_list, freq_list = compute_PSD(fhat, delta)
