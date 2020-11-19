@@ -113,12 +113,11 @@ def rearrange_data_for_fft(samples):
         for i in range(count):
             rearrange_data_for_fft_sub(samples, elements_to_order, elements_to_order*i)
 
-        elements_to_order /= 2
-        elements_to_order = int(elements_to_order)
+        elements_to_order //= 2
         count *= 2
 
 def rearrange_data_for_fft_sub(samples, N, offset):
-    N2 = int(N/2)
+    N2 = N//2
     for i in range(1, N2, 2):
         swap(samples, offset+N2+i-1, offset+i)
 
