@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "revert_bits.h"
+
 #define DELTA 1e-6
 #define PI 3.141592
 #define OMEGA_MATRIX_SIZE 8
@@ -57,20 +59,39 @@ float* generate_signal_from_list_of_freq(const float *freq_list, const uint32_t 
   return out;
 }
 
-Number* multiply_add_omega_matrix_with_vector(const Number *omega_matrix, const uint32_t omega_matrix_size, const float *vector, const uint32_t vector_size) {
+Number* multiply_add_omega_matrix_with_vector(const Number *omega_matrix, const uint32_t omega_matrix_size, const Number *vector, const uint32_t vector_size) {
   Number *res = (Number*)malloc(sizeof(Number) * vector_size);
   for(uint32_t i = 0; i < vector_size; ++i) {
     res[i].real = 0.f;
     res[i].complex = 0.f;
     for(uint32_t j = 0; j < vector_size; ++j) {
-      printf("%f * %f = %f\n", vector[i], omega_matrix[i*vector_size + j].real, res[i].real);
-      res[i].real += vector[j] * omega_matrix[i*vector_size + j].real;
-      res[i].complex += vector[j] * omega_matrix[i*vector_size + j].complex;
+      //printf("%f * %f = %f\n", vector[i].real, omega_matrix[i*vector_size + j].real, res[i].real);
+      res[i].real += vector[j].real * omega_matrix[i*vector_size + j].real;
+      res[i].complex += vector[j].real * omega_matrix[i*vector_size + j].complex;
     }
   }
 
   return res;
 }
+
+void rearrange_data_for_fft_mem(const Number *in, const uint32_t count, Number *out) {
+  uint32_t omega_size_log2 = (uint32_t)log2(OMEGA_MATRIX_SIZE);
+  uint32_t data_size_log2  = (uint32_t)log2(count);
+
+  uint32_t iteration_count = data_size_log2 - omega_size_log2;
+  uint32_t increment = (1 << (iteration_count));
+
+  for(uint32_t i = 0; i < count; ++i) {
+    uint32_t in_index = revert_bits(i, data_size_log2);
+    out[i] = in[in_index];
+    for(uint32_t ii = 0; ii < (OMEGA_MATRIX_SIZE - 1); ++ii) {
+      in_index += increment;
+      i++;
+      out[i] = in[in_index];
+    }
+  }
+}
+
 
 #if 0
 Number* naive_fft(const Number *samples, const uint32_t samples_count, const Number *omega_matrix, const uint32_t omega_matrix_size) {
@@ -80,15 +101,70 @@ Number* naive_fft(const Number *samples, const uint32_t samples_count, const Num
 }
 #endif
 
+//#define V 64
+//#define V 65536
+//#define V 262144
+//#define V 2097152
+#define V 4194304 //2^22
+
 int main() {
-  printf("Test\n");
-
-  float vector[] = {1,2,3,4,5,6,7,8};
-
   /* init */
   Number *omega_matrix = generate_omega_matrix(OMEGA_MATRIX_SIZE);
-  /* init */
-  Number *res = multiply_add_omega_matrix_with_vector(omega_matrix, OMEGA_MATRIX_SIZE, vector, OMEGA_MATRIX_SIZE);
+
+  Number *a=malloc(sizeof(Number) * V);
+  Number *b=malloc(sizeof(Number) * V);
+  for(int i=0; i<V; ++i) {
+    a[i].real = i;
+    a[i].complex = 0;
+  }
+
+  rearrange_data_for_fft_mem(a, V, b);
+
+  for(int i=0; i < (V/OMEGA_MATRIX_SIZE); ++i) {
+    uint32_t offset = OMEGA_MATRIX_SIZE * i;
+    /* most likely want to pass the correct place */
+    Number *res = multiply_add_omega_matrix_with_vector(omega_matrix, OMEGA_MATRIX_SIZE, &b[offset], OMEGA_MATRIX_SIZE);
+    for(int x=0; x < OMEGA_MATRIX_SIZE; ++x) {
+      b[offset+x] = res[x];
+    }
+
+    free(res);
+  }
+
+  uint32_t omega_size_log2 = (uint32_t)log2(OMEGA_MATRIX_SIZE);
+  uint32_t data_size_log2  = (uint32_t)log2(V);
+
+  uint32_t iteration_count = data_size_log2 - omega_size_log2;
+  uint32_t half_N = OMEGA_MATRIX_SIZE;
+
+  Number *tmp = a;
+  Number *vals = b;
+
+  for(uint32_t i = 0; i < iteration_count; ++i) {
+    float w = (-2. * PI) / (float)(half_N*2.);
+    for(uint32_t y = 0; y < (V / half_N / 2); ++y) {
+      Number *even = &vals[(y*2)*half_N];
+      Number *odd  = &vals[((y*2)+1)*half_N];
+
+      for(uint32_t half_idx = 0; half_idx < half_N; ++half_idx) {
+        tmp[(y*2)*half_N+half_idx].real = even[half_idx].real + odd[half_idx].real * cos(w*half_idx) - odd[half_idx].complex * sin(w*half_idx);
+        tmp[(y*2)*half_N+half_idx].complex = even[half_idx].complex + odd[half_idx].complex * cos(w*half_idx) + odd[half_idx].real * sin(w*half_idx);
+        tmp[(y*2+1)*half_N+half_idx].real = even[half_idx].real + odd[half_idx].real * -cos(w*half_idx) - odd[half_idx].complex * -sin(w*half_idx);
+        tmp[(y*2+1)*half_N+half_idx].complex = even[half_idx].complex + odd[half_idx].complex * -cos(w*half_idx) + odd[half_idx].real * -sin(w*half_idx);
+      }
+    }
+    Number *a = tmp;
+    tmp = vals;
+    vals = a;
+
+    half_N *= 2;
+  }
+
+  free(a);
+  free(b);
+  free(omega_matrix);
+
+  return;
 
   //float freq_list[5] = {50.f, 120.f, 192.f, 1200.f, 4000.f};
 
@@ -99,7 +175,6 @@ int main() {
   //printf("%f\n", sample_list[1]);
 
   //free(sample_list);
-  free(omega_matrix);
 
   return 0;
 }
