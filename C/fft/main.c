@@ -59,8 +59,8 @@ float* generate_signal_from_list_of_freq(const float *freq_list, const uint32_t 
   return out;
 }
 
-Number* multiply_add_omega_matrix_with_vector(const Number *omega_matrix, const uint32_t omega_matrix_size, const Number *vector, const uint32_t vector_size) {
-  Number *res = (Number*)malloc(sizeof(Number) * vector_size);
+void multiply_add_omega_matrix_with_vector(const Number *omega_matrix, const uint32_t omega_matrix_size, Number *vector, const uint32_t vector_size) {
+  Number res[OMEGA_MATRIX_SIZE];
   for(uint32_t i = 0; i < vector_size; ++i) {
     res[i].real = 0.f;
     res[i].complex = 0.f;
@@ -70,8 +70,9 @@ Number* multiply_add_omega_matrix_with_vector(const Number *omega_matrix, const 
       res[i].complex += vector[j].real * omega_matrix[i*vector_size + j].complex;
     }
   }
-
-  return res;
+  for(uint32_t i = 0; i < vector_size; ++i) {
+    vector[i] = res[i];
+  }
 }
 
 void rearrange_data_for_fft_mem(const Number *in, const uint32_t count, Number *out) {
@@ -122,13 +123,7 @@ int main() {
 
   for(int i=0; i < (V/OMEGA_MATRIX_SIZE); ++i) {
     uint32_t offset = OMEGA_MATRIX_SIZE * i;
-    /* most likely want to pass the correct place */
-    Number *res = multiply_add_omega_matrix_with_vector(omega_matrix, OMEGA_MATRIX_SIZE, &b[offset], OMEGA_MATRIX_SIZE);
-    for(int x=0; x < OMEGA_MATRIX_SIZE; ++x) {
-      b[offset+x] = res[x];
-    }
-
-    free(res);
+    multiply_add_omega_matrix_with_vector(omega_matrix, OMEGA_MATRIX_SIZE, &b[offset], OMEGA_MATRIX_SIZE);
   }
 
   uint32_t omega_size_log2 = (uint32_t)log2(OMEGA_MATRIX_SIZE);

@@ -9,6 +9,7 @@ add_executable(main
 
 add_definitions(
   -g
+  -O2
   )
 
 target_link_libraries(main
