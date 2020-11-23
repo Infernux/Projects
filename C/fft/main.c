@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "measure_tools.h"
 #include "revert_bits.h"
 
 #define DELTA 1e-6
@@ -65,6 +66,8 @@ Number* generate_signal_from_list_of_freq(const double *freq_list, const uint32_
     out[i].complex = 0;
     t += delta;
   }
+
+  printf("ccount : %d\n", *count);
 
   return out;
 }
@@ -161,11 +164,16 @@ int main() {
 
   Number *b=malloc(sizeof(Number) * padded_count);
 
+  TIME_INIT
+  TIME_START
   Number *res = naive_fft(sample_list, padded_count, omega_matrix, OMEGA_MATRIX_SIZE, b);
+  TIME_END("fast")
 
+#ifdef DEBUG_OUTPUT
   for(int i = 0; i < count; ++i) {
     PRINT(res[i]);
   }
+#endif
 
   free(sample_list);
   free(omega_matrix);
