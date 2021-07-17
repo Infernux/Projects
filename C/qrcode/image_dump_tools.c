@@ -16,9 +16,10 @@ void convertBinaryPGMToTextPGM(const char *path)
   printf("width : %d, height : %d\n", width, height);
   printf("max val : %d\n", max_val);
 
-  saveAsTextPgm("pgmed.pgm", buff, width, height, max_val);
+  saveAsTextPgm("pgmed.pgm", buff, width, height, max_val, width);
 }
 
+/* call once without any buffer, to only get the size/max_val returned */
 int loadImage(const char *path, uint8_t *image, int *width, int *height, int *max_val)
 {
   FILE *f = fopen(path, "rb");
@@ -119,12 +120,18 @@ int loadImage(const char *path, uint8_t *image, int *width, int *height, int *ma
 
   *max_val = atoi(buff);
 
+  if(image == NULL) {
+    fclose(f);
+    return 0;
+  }
+
   printf("Read : %d\n", fread(image, sizeof(uint8_t), (*width) * (*height), f));
 
   fclose(f);
+  return 0;
 }
 
-int saveAsTextPgm(const char *path, const uint8_t *image, const int width, const int height, const int max_val)
+int saveAsTextPgm(const char *path, const uint8_t *image, const int width, const int height, const int max_val, const int stride)
 {
   FILE *f = fopen(path, "w");
   if(!f)
@@ -142,7 +149,7 @@ int saveAsTextPgm(const char *path, const uint8_t *image, const int width, const
   {
     for(x=0; x<width; ++x)
     {
-      fprintf(f, "%03d ", image[(y * width) + x]);
+      fprintf(f, "%03d ", image[(y * stride) + x]);
     }
     fprintf(f, "\n");
   }
