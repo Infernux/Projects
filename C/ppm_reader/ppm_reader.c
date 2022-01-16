@@ -39,9 +39,9 @@ win_draw(win_t *win, ImageStruct *pst_image)
   {
     for(x=0; x<pst_image->width; ++x)
     {
-      int r = pst_image->r[y * pst_image->pitch + x];
-      int g = pst_image->g[y * pst_image->pitch + x];
-      int b = pst_image->b[y * pst_image->pitch + x];
+      int r = pst_image->p[y * pst_image->pitch + x].r;
+      int g = pst_image->p[y * pst_image->pitch + x].g;
+      int b = pst_image->p[y * pst_image->pitch + x].b;
 
       cairo_set_source_rgb(cr, r/255., g/255., b/255.);
       square(cr, x, y);
@@ -54,12 +54,12 @@ win_draw(win_t *win, ImageStruct *pst_image)
 }
 
 static void
-win_init(win_t *win)
+win_init(win_t *win, const ImageStruct *image)
 {
     Window root;
 
-    win->width = 400;
-    win->height = 400;
+    win->width = image->width;
+    win->height = image->height;
 
     root = DefaultRootWindow(win->dpy);
     win->scr = DefaultScreen(win->dpy);
@@ -124,7 +124,7 @@ win_handle_events(win_t *win)
 int main(int argc, char **argv)
 {
 
-  ImageStruct *pst_image = readAsciiPpm(argv[1]);
+  ImageStruct *pst_image = readPpm(argv[1]);
 
   win_t win;
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  win_init(&win);
+  win_init(&win, pst_image);
 
   win_draw(&win, pst_image);
 

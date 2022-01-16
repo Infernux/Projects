@@ -3,18 +3,23 @@
 
 #include <inttypes.h>
 
+typedef struct pixel_
+{
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} Pixel;
+
 typedef struct imagestruct_
 {
   int width;
   int height;
   int pitch;
 
-  uint8_t *r;
-  uint8_t *g;
-  uint8_t *b;
+  Pixel *p;
 } ImageStruct;
 
-ImageStruct* readAsciiPpm(char *path);
+ImageStruct* readPpm(const char *path);
 
 void freeImageStruct(ImageStruct *img_struct);
 

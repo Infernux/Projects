@@ -7,7 +7,7 @@ def print_stats():
     average = total_us / count
     total = total_us
 
-    print("Tag:{}".format(tag))
+    print("Tag:\x1b[6;30;42m{}\x1b[0m".format(tag))
     print("Average {}us (Total {}ms)".format(average, total/1e3))
     print("Max {}us at frame {}".format(max_val, max_frame))
 
