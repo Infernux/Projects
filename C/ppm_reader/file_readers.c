@@ -53,7 +53,7 @@ void skipComments(char *str, FILE *f)
 uint8_t skipUntilNewLine(FILE *f)
 {
   char c='\0';
-  while(((c=fgets(&c, 1, f)) != EOF) && (c != '\n'));
+  while(((c=getc(f)) != EOF) && (c != '\n'));
   return 0;
 }
 
