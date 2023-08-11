@@ -1,13 +1,13 @@
-C_FLAGS:=-finstrument-functions -fPIC -g
+C_FLAGS:=-finstrument-functions -fPIC #-g
 
 main: main.o libtest.so libdecorator.so
 	gcc -o main main.o -rdynamic -L. -ltest -ldecorator
 
 main.o: main.c
-	gcc -c main.c ${C_FLAGS}
+	gcc -c main.c ${C_FLAGS} -rdynamic
 
 libtest.so: test.c
-	gcc --shared -o libtest.so test.c ${C_FLAGS}
+	gcc --shared -o libtest.so test.c ${C_FLAGS} -rdynamic
 
 libdecorator.so: decorator.c
 	gcc --shared -o libdecorator.so decorator.c
