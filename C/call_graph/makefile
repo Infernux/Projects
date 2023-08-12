@@ -19,3 +19,6 @@ clean:
 
 run: main
 	LD_LIBRARY_PATH=. ./main
+
+run_mem: main
+	LD_LIBRARY_PATH=. valgrind --leak-check=full ./main

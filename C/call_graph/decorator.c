@@ -14,9 +14,9 @@
 
 #define DUMP_ADDR(addr, bytecount) \
 { \
-  for(int aa=0; aa<bytecount; ++aa) \
+  for(int idx=0; idx<bytecount; ++idx) \
   { \
-    printf("%d", ((char*)addr)[aa]); \
+    printf("%d", ((char*)addr)[idx]); \
   } \
   printf("\n"); \
 }
@@ -34,9 +34,10 @@ static char* find_str_offset(char *base_addr, int index)
 }
 
 __attribute__((no_instrument_function))
-static void static_symbol(const char *filename, const char *addr_offset)
+static char* static_symbol(const char *filename, const char *addr_offset)
 {
-  printf("===\n%s\n===", addr_offset);
+  char *res_value = NULL;
+
   int str_offset = -1;
   int str_table_offset = -1;
 
@@ -44,19 +45,17 @@ static void static_symbol(const char *filename, const char *addr_offset)
   if(fd==-1)
   {
     printf("Failed to open file %s\n", filename);
-    return;
+    return NULL;
   }
 
   struct stat fd_stat;
   fstat(fd, &fd_stat);
-  printf("size %d\n", fd_stat.st_size);
   void *map_start = mmap(0, fd_stat.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if(map_start == MAP_FAILED)
   {
-    printf("fded %s\n", strerror(errno));
+    printf("mmap, failed %s\n", strerror(errno));
     exit(1);
   }
-  printf("map %p\n", map_start);
 
   Elf64_Ehdr *header = (Elf64_Ehdr *)map_start;
   printf("str offset : %x\n", header->e_phoff);
@@ -103,13 +102,27 @@ static void static_symbol(const char *filename, const char *addr_offset)
 
         printf("Section size : %x\n", sections[i].sh_size);
 
-        //char *sym_addr = find_str_offset(map_start + sections[i].sh_offset, str_offset);
         char *sym_addr = map_start + sections[i].sh_offset + str_offset;
-        printf("\tStatic sym : %s\n", sym_addr);
+        size_t sym_name_len = strlen(sym_addr);
+        res_value = (char*)malloc(sizeof(char) * (sym_name_len + 1));
+        strncpy(res_value, sym_addr, sym_name_len);
+        res_value[sym_name_len] = '\0';
       }
     }
   }
+  int ret = munmap(map_start, fd_stat.st_size);
+  if (ret != 0) {
+    printf("(%s:%d) Failed munmap\n", __func__, __LINE__);
+    if(res_value) {
+      free(res_value);
+    }
+    close(fd);
+    exit(1);
+  }
+
   close(fd);
+
+  return res_value;
 }
 
 __attribute__((no_instrument_function))
@@ -143,10 +156,11 @@ static void print_function_name(char *fun_info)
 
   if(plus == start)
   {
-    printf("(call to static function %s)\n", &fun_info[plus+1]);
-    printf("call (%s)\n", fun_info);
-
-    static_symbol(fun_info, &fun_info[plus+1]);
+    char *sym_name = static_symbol(fun_info, &fun_info[plus+1]);
+    if(sym_name) {
+      printf("(call to static function %s)\n", sym_name);
+      free(sym_name);
+    }
   } else {
     printf("(call to %s)\n", &fun_info[start]);
   }
@@ -163,4 +177,5 @@ void __cyg_profile_func_enter(void *this_fn,
   //char **sym = backtrace_symbols(&this_fn, 1);
   char **sym = backtrace_symbols(&this_fn, 1);
   print_function_name(sym[0]);
+  free(sym);
 }
