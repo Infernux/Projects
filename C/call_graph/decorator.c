@@ -67,22 +67,26 @@ static void static_symbol(const char *filename, const char *addr_offset)
   int found_str_sections = -1;
   for(int i=0; i<header->e_shnum; ++i)
   {
-    printf("\twoot %x, size : %x\n", sections[i].sh_offset, sections[i].sh_size);
+    //printf("\twoot %x, size : %x\n", sections[i].sh_offset, sections[i].sh_size);
     if(sections[i].sh_type == SHT_SYMTAB)
     {
       printf("\t== SHT_SYMTAB ==\n");
 
       str_table_offset = sections[i].sh_name;
-      str_offset = sections[i].sh_entsize;
       printf("\t\tSection size : %x, %d, offset : %x\n", sections[i].sh_size, sections[i].sh_name, sections[i].sh_offset);
       printf("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
 
       char *syms = map_start + sections[i].sh_offset;
       //printf("\t\tsym size = %x, %x\n", syms->st_size, sections[i].sh_offset);
+      uint64_t int_addr_offset = strtol(addr_offset, NULL, 16);
       for(size_t sym_idx = 0; sym_idx < sections[i].sh_size / sizeof(Elf64_Sym); ++sym_idx, syms += sections[i].sh_entsize)
       {
         Elf64_Sym *loc_sym = (Elf64_Sym*)syms;
-        printf("\t\tsym value = %x\n", loc_sym->st_value);
+
+        if(int_addr_offset == loc_sym->st_value) {
+          printf("\t\tsym value = %x\n", loc_sym->st_name);
+          str_offset = loc_sym->st_name;
+        }
       }
       printf("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
     } else if(sections[i].sh_type == SHT_STRTAB) {
