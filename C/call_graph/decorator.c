@@ -46,7 +46,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
   int fd = open(filename, O_RDONLY);
   if(fd==-1)
   {
-    LOG("Failed to open file %s\n", filename);
+    printf("Failed to open file %s\n", filename);
     return NULL;
   }
 
@@ -55,7 +55,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
   void *map_start = mmap(0, fd_stat.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if(map_start == MAP_FAILED)
   {
-    LOG("\tmmap, failed %s\n", strerror(errno));
+    printf("\tmmap, failed %s\n", strerror(errno));
     exit(1);
   }
 
@@ -65,6 +65,12 @@ static char* static_symbol(const char *filename, const char *addr_offset)
   /* e_shstrndx is indexed on 1 */
   int str_section_idx = header->e_shstrndx - 1;
 
+  if(header->e_machine != EM_X86_64) {
+    printf("\tUnsupported machine type %d\n", header->e_machine);
+    return NULL;
+  }
+
+  LOG("\tmachine : %d\n", header->e_machine);
   LOG("\tstr offset : %x\n", header->e_phoff);
   LOG("\toffset : %x\n", header->e_shoff);
   LOG("\tSection count %d\n", header->e_shnum);
@@ -92,13 +98,13 @@ static char* static_symbol(const char *filename, const char *addr_offset)
         }
       }
       LOG("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
-    } 
+    }
   }
 
   if(sections[str_section_idx].sh_type == SHT_STRTAB) {
     if(str_table_offset == -1)
     {
-      LOG("\tstr_table_offset not set\n");
+      printf("\tstr_table_offset not set\n");
       return NULL;
     }
 
@@ -109,7 +115,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
     char *sym_addr = map_start + sections[str_section_idx].sh_offset + str_offset;
     size_t sym_name_len = strlen(sym_addr);
     if(sym_name_len > 500) {
-      LOG("\t\tSymbol name probably too long, bailing\n");
+      printf("\t\tSymbol name probably too long, bailing\n");
       return NULL;
     }
     res_value = (char*)malloc(sizeof(char) * (sym_name_len + 1));
@@ -119,7 +125,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
 
   int ret = munmap(map_start, fd_stat.st_size);
   if (ret != 0) {
-    LOG("(%s:%d) Failed munmap\n", __func__, __LINE__);
+    printf("(%s:%d) Failed munmap\n", __func__, __LINE__);
     if(res_value) {
       free(res_value);
     }
