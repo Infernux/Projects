@@ -92,7 +92,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
       {
         Elf64_Sym *loc_sym = (Elf64_Sym*)syms;
 
-        if(int_addr_offset == loc_sym->st_value) {
+        if((int_addr_offset >= loc_sym->st_value) && (int_addr_offset < (loc_sym->st_value + loc_sym->st_size))) {
           LOG("\t\tsym value = %x\n", loc_sym->st_name);
           str_offset = loc_sym->st_name;
         }
@@ -141,6 +141,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
 __attribute__((no_instrument_function))
 static void print_function_name(char *fun_info)
 {
+  LOG("=> call %s\n", fun_info);
   size_t info_len = strlen(fun_info);
 
   size_t i=0;
@@ -183,10 +184,25 @@ __attribute__((no_instrument_function))
 void __cyg_profile_func_enter(void *this_fn,
     void *call_fn)
 {
-  LOG("own pid : %d\n", getpid());
+  printf("===== backtrace =====\n");
 
-  //char **sym = backtrace_symbols(&this_fn, 1);
-  char **sym = backtrace_symbols(&this_fn, 1);
-  print_function_name(sym[0]);
+  char **sym = NULL;
+  //sym = backtrace_symbols(&this_fn, 1);
+  //print_function_name(sym[0]);
+  //free(sym);
+
+  void *buffer[3];
+  int backtrace_length = backtrace(buffer, 3);
+  if(backtrace_length < 1) {
+    printf("Failed to get backtrace\n");
+    return;
+  }
+  printf("Backtrace length = %d\n", backtrace_length);
+  sym = backtrace_symbols(buffer, backtrace_length);
+  for(int bt_id = 0; bt_id < backtrace_length; ++bt_id) {
+    print_function_name(sym[bt_id]);
+  }
+  printf("%p, %p\n", this_fn, buffer[1]);
   free(sym);
+  printf("===== backtrace =====\n");
 }
