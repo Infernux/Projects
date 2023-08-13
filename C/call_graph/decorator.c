@@ -21,6 +21,9 @@
   printf("\n"); \
 }
 
+//#define LOG(...) printf(__VA_ARGS__)
+#define LOG(...)
+
 __attribute__((no_instrument_function))
 static char* find_str_offset(char *base_addr, int index)
 {
@@ -37,14 +40,13 @@ __attribute__((no_instrument_function))
 static char* static_symbol(const char *filename, const char *addr_offset)
 {
   char *res_value = NULL;
-
   int str_offset = -1;
   int str_table_offset = -1;
 
   int fd = open(filename, O_RDONLY);
   if(fd==-1)
   {
-    printf("Failed to open file %s\n", filename);
+    LOG("Failed to open file %s\n", filename);
     return NULL;
   }
 
@@ -53,66 +55,71 @@ static char* static_symbol(const char *filename, const char *addr_offset)
   void *map_start = mmap(0, fd_stat.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if(map_start == MAP_FAILED)
   {
-    printf("mmap, failed %s\n", strerror(errno));
+    LOG("\tmmap, failed %s\n", strerror(errno));
     exit(1);
   }
 
   Elf64_Ehdr *header = (Elf64_Ehdr *)map_start;
-  printf("str offset : %x\n", header->e_phoff);
-  printf("offset : %x\n", header->e_shoff);
   Elf64_Shdr *sections = (Elf64_Shdr*)((char*)map_start + header->e_shoff);
-  printf("Section count %d\n", header->e_shnum);
 
-  int found_str_sections = -1;
+  /* e_shstrndx is indexed on 1 */
+  int str_section_idx = header->e_shstrndx - 1;
+
+  LOG("\tstr offset : %x\n", header->e_phoff);
+  LOG("\toffset : %x\n", header->e_shoff);
+  LOG("\tSection count %d\n", header->e_shnum);
+  LOG("\tString table offset : %d\n", header->e_shstrndx);
+
   for(int i=0; i<header->e_shnum; ++i)
   {
-    //printf("\twoot %x, size : %x\n", sections[i].sh_offset, sections[i].sh_size);
     if(sections[i].sh_type == SHT_SYMTAB)
     {
-      printf("\t== SHT_SYMTAB ==\n");
+      LOG("\t== SHT_SYMTAB ==\n");
 
       str_table_offset = sections[i].sh_name;
-      printf("\t\tSection size : %x, %d, offset : %x\n", sections[i].sh_size, sections[i].sh_name, sections[i].sh_offset);
-      printf("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
+      LOG("\t\tSection size : %x, %d, offset : %x\n", sections[i].sh_size, sections[i].sh_name, sections[i].sh_offset);
+      LOG("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
 
       char *syms = map_start + sections[i].sh_offset;
-      //printf("\t\tsym size = %x, %x\n", syms->st_size, sections[i].sh_offset);
       uint64_t int_addr_offset = strtol(addr_offset, NULL, 16);
       for(size_t sym_idx = 0; sym_idx < sections[i].sh_size / sizeof(Elf64_Sym); ++sym_idx, syms += sections[i].sh_entsize)
       {
         Elf64_Sym *loc_sym = (Elf64_Sym*)syms;
 
         if(int_addr_offset == loc_sym->st_value) {
-          printf("\t\tsym value = %x\n", loc_sym->st_name);
+          LOG("\t\tsym value = %x\n", loc_sym->st_name);
           str_offset = loc_sym->st_name;
         }
       }
-      printf("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
-    } else if(sections[i].sh_type == SHT_STRTAB) {
-      found_str_sections++;
-      if(str_table_offset == -1)
-      {
-        printf("str_table_offset not set\n");
-        continue;
-      }
-
-      if(found_str_sections == str_table_offset)
-      {
-        printf("== SHT_STRTAB ==\n");
-
-        printf("Section size : %x\n", sections[i].sh_size);
-
-        char *sym_addr = map_start + sections[i].sh_offset + str_offset;
-        size_t sym_name_len = strlen(sym_addr);
-        res_value = (char*)malloc(sizeof(char) * (sym_name_len + 1));
-        strncpy(res_value, sym_addr, sym_name_len);
-        res_value[sym_name_len] = '\0';
-      }
-    }
+      LOG("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
+    } 
   }
+
+  if(sections[str_section_idx].sh_type == SHT_STRTAB) {
+    if(str_table_offset == -1)
+    {
+      LOG("\tstr_table_offset not set\n");
+      return NULL;
+    }
+
+    LOG("\t== SHT_STRTAB ==\n");
+
+    LOG("\t\tSection size : %x\n", sections[str_section_idx].sh_size);
+
+    char *sym_addr = map_start + sections[str_section_idx].sh_offset + str_offset;
+    size_t sym_name_len = strlen(sym_addr);
+    if(sym_name_len > 500) {
+      LOG("\t\tSymbol name probably too long, bailing\n");
+      return NULL;
+    }
+    res_value = (char*)malloc(sizeof(char) * (sym_name_len + 1));
+    strncpy(res_value, sym_addr, sym_name_len);
+    res_value[sym_name_len] = '\0';
+  }
+
   int ret = munmap(map_start, fd_stat.st_size);
   if (ret != 0) {
-    printf("(%s:%d) Failed munmap\n", __func__, __LINE__);
+    LOG("(%s:%d) Failed munmap\n", __func__, __LINE__);
     if(res_value) {
       free(res_value);
     }
@@ -170,9 +177,7 @@ __attribute__((no_instrument_function))
 void __cyg_profile_func_enter(void *this_fn,
     void *call_fn)
 {
-  printf("own pid : %d\n", getpid());
-
-
+  LOG("own pid : %d\n", getpid());
 
   //char **sym = backtrace_symbols(&this_fn, 1);
   char **sym = backtrace_symbols(&this_fn, 1);
