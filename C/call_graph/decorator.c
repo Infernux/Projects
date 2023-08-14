@@ -86,7 +86,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
       LOG("\t\tSection size : %x, %d, offset : %x\n", sections[i].sh_size, sections[i].sh_name, sections[i].sh_offset);
       LOG("\t\tSymbol count : %d\n", sections[i].sh_size / sizeof(Elf64_Sym));
 
-      char *syms = map_start + sections[i].sh_offset;
+      char *syms = (char*)((uintptr_t)map_start + (uintptr_t)sections[i].sh_offset);
       uint64_t int_addr_offset = strtol(addr_offset, NULL, 16);
       for(size_t sym_idx = 0; sym_idx < sections[i].sh_size / sizeof(Elf64_Sym); ++sym_idx, syms += sections[i].sh_entsize)
       {
@@ -112,7 +112,7 @@ static char* static_symbol(const char *filename, const char *addr_offset)
 
     LOG("\t\tSection size : %x\n", sections[str_section_idx].sh_size);
 
-    char *sym_addr = map_start + sections[str_section_idx].sh_offset + str_offset;
+    char *sym_addr = (char*)((uintptr_t)map_start + (uintptr_t)sections[str_section_idx].sh_offset + (uintptr_t)str_offset);
     size_t sym_name_len = strlen(sym_addr);
     if(sym_name_len > 500) {
       printf("\t\tSymbol name probably too long, bailing\n");
@@ -180,7 +180,6 @@ static void print_function_name(char *fun_info)
   }
 }
 
-__attribute__((no_instrument_function))
 void __cyg_profile_func_enter(void *this_fn,
     void *call_fn)
 {
